@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Quản lý tài sản trường học{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    {% if request.path != '/login' %}
+    <div class="app-shell">
+        <aside class="sidebar open">
+            <div class="sidebar-header">
+                <div class="sidebar-logo"><i class="bi bi-building-check"></i></div>
+                <div class="brand-copy">
+                    <strong>QL TÀI SẢN</strong>
+                    <small>Smart Asset Management</small>
+                </div>
+            </div>
+
+            <nav class="nav-group">
+                <div class="nav-label">Menu</div>
+                <a href="{{ url_for('dashboard.dashboard') }}" class="nav-item {% if request.path == '/dashboard' %}active{% endif %}"><i class="bi bi-house-door"></i> Tổng quan</a>
+                <div class="nav-item {% if request.path.startswith('/assets') %}active child-open{% endif %}"><i class="bi bi-box-seam"></i> Tài sản</div>
+                <div class="child-list">
+                    <a href="{{ url_for('assets.list_assets') }}">Danh sách tài sản</a>
+                    <a href="{{ url_for('assets.list_assets') }}">Thêm tài sản</a>
+                    <a href="{{ url_for('assets.list_assets') }}">Tra cứu tài sản</a>
+                </div>
+                <div class="nav-item {% if request.path.startswith('/inventory') %}active child-open{% endif %}"><i class="bi bi-clipboard-check"></i> Kiểm kê</div>
+                <div class="child-list">
+                    <a href="{{ url_for('inventory.list_inventory') }}">Đợt kiểm kê</a>
+                    <a href="{{ url_for('inventory.list_inventory') }}">Ghi nhận kiểm kê</a>
+                </div>
+                <a href="{{ url_for('transfer.list_transfers') }}" class="nav-item {% if request.path.startswith('/transfers') %}active{% endif %}"><i class="bi bi-arrow-left-right"></i> Điều chuyển</a>
+                <a href="{{ url_for('repair.list_repairs') }}" class="nav-item {% if request.path.startswith('/repairs') %}active{% endif %}"><i class="bi bi-wrench-adjustable-circle"></i> Sửa chữa</a>
+                <a href="{{ url_for('disposal.list_disposals') }}" class="nav-item {% if request.path.startswith('/disposals') %}active{% endif %}"><i class="bi bi-trash3"></i> Thanh lý</a>
+                <a href="{{ url_for('reports.reports') }}" class="nav-item {% if request.path == '/reports' %}active{% endif %}"><i class="bi bi-bar-chart"></i> Báo cáo</a>
+                <a href="{{ url_for('ai.chat') }}" class="nav-item {% if request.path.startswith('/ai') %}active{% endif %}"><i class="bi bi-robot"></i> Trợ lý AI</a>
+                <a href="{{ url_for('ai.report') }}" class="nav-item {% if request.path == '/ai/report' %}active{% endif %}"><i class="bi bi-stars"></i> AI Báo cáo</a>
+                {% if current_user and current_user.is_admin %}
+                <a href="{{ url_for('auth.users') }}" class="nav-item {% if request.path == '/users' %}active{% endif %}"><i class="bi bi-people"></i> Người dùng</a>
+                <a href="{{ url_for('auth.settings') }}" class="nav-item {% if request.path == '/settings' %}active{% endif %}"><i class="bi bi-sliders"></i> Hệ thống</a>
+                {% endif %}
+            </nav>
+        </aside>
+
+        <div class="main-panel">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="menu-toggle" type="button" aria-label="Mở menu"><i class="bi bi-list"></i></button>
+                    <nav class="breadcrumb" aria-label="Breadcrumb">
+                        <span>Trang chủ</span>
+                        <i class="bi bi-chevron-right"></i>
+                        <span class="current">{% block breadcrumb %}Tổng quan{% endblock %}</span>
+                    </nav>
+                </div>
+
+                <div class="user-menu">
+                    <div class="user-trigger">
+                        <button type="button" class="action-btn" aria-label="Thông báo"><i class="bi bi-bell"></i></button>
+                        <div class="user-avatar">{{ (current_user.full_name[:1] if current_user and current_user.full_name else (current_user.username[:1] if current_user else 'U')).upper() }}</div>
+                        <div class="user-meta">
+                            <strong>{{ current_user.full_name if current_user and current_user.full_name else (current_user.username if current_user else 'Khách') }}</strong>
+                            <span>{{ current_user.display_role if current_user else 'Khách' }}</span>
+                        </div>
+                        <i class="bi bi-chevron-down"></i>
+                    </div>
+                    <div class="dropdown-menu">
+                        <a href="{{ url_for('auth.profile') }}"><i class="bi bi-person"></i> Hồ sơ</a>
+                        <a href="{{ url_for('auth.change_password') }}"><i class="bi bi-key"></i> Đổi mật khẩu</a>
+                        {% if current_user and current_user.is_admin %}
+                        <a href="{{ url_for('auth.settings') }}"><i class="bi bi-gear"></i> Cài đặt tài khoản</a>
+                        {% endif %}
+                        <a href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right"></i> Đăng xuất</a>
+                    </div>
+                </div>
+            </header>
+
+            <main class="page-content">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="toast-stack">
+                            {% for category, message in messages %}
+                                <div class="toast {{ category if category == 'error' else 'success' }}">{{ message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    {% else %}
+        {% block login_content %}{% endblock %}
+    {% endif %}
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

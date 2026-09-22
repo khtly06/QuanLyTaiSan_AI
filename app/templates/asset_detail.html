@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Chi tiết tài sản{% endblock %}
+{% block breadcrumb %}Chi tiết tài sản{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>{{ asset.name }}</h1>
+    <a class="btn btn-secondary" href="/assets">← Quay lại danh sách</a>
+</div>
+
+<div class="card">
+    <div class="form-grid">
+        <div><label>Mã tài sản</label><div>{{ asset.asset_code }}</div></div>
+        <div><label>Tên tài sản</label><div>{{ asset.name }}</div></div>
+        <div><label>Danh mục</label><div>{{ asset.category.name if asset.category else '—' }}</div></div>
+        <div><label>Phòng ban</label><div>{{ asset.department.name if asset.department else '—' }}</div></div>
+        <div><label>Người sử dụng</label><div>{{ asset.user_name or '—' }}</div></div>
+        <div><label>Ngày mua</label><div>{{ asset.purchase_date or '—' }}</div></div>
+        <div><label>Giá trị</label><div>{{ "{:,.0f}".format(asset.value or 0) }} VNĐ</div></div>
+        <div><label>Vị trí</label><div>{{ asset.location or '—' }}</div></div>
+        <div><label>Trạng thái</label><div><span class="badge status-{{ asset.status }}">{{ asset.status }}</span></div></div>
+        <div style="grid-column: 1 / -1;"><label>Ghi chú</label><div>{{ asset.notes or '—' }}</div></div>
+    </div>
+</div>
+{% endblock %}

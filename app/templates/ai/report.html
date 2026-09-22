@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}AI Báo cáo{% endblock %}
+{% block breadcrumb %}AI Báo cáo{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>AI Báo cáo</h1>
+</div>
+
+<div class="card" style="margin-bottom: 20px;">
+    <h3>Chọn loại báo cáo</h3>
+    <div class="form-grid">
+        <div>
+            <label>Loại báo cáo</label>
+            <select id="report-type">
+                <option value="overview">Tổng quan</option>
+                <option value="department">Theo phòng ban</option>
+                <option value="repair">Sửa chữa</option>
+                <option value="disposal">Thanh lý</option>
+                <option value="inventory">Kiểm kê</option>
+            </select>
+        </div>
+        <div style="display: flex; align-items: end;">
+            <button class="btn btn-primary" id="generate-report">Tạo báo cáo</button>
+        </div>
+    </div>
+</div>
+
+<div class="ai-section">
+    <div class="card">
+        <h3>DỮ LIỆU THỐNG KÊ</h3>
+        <pre id="stats-output" style="white-space: pre-wrap; background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid var(--border);">{}</pre>
+    </div>
+    <div class="card">
+        <h3>PHÂN TÍCH CỦA AI</h3>
+        <div id="ai-analysis" style="white-space: pre-wrap; line-height: 1.7; color: #334155;">Chưa có phân tích AI.</div>
+    </div>
+</div>
+
+<script>
+const typeSelect = document.getElementById('report-type');
+const statsOutput = document.getElementById('stats-output');
+const aiAnalysis = document.getElementById('ai-analysis');
+const generateButton = document.getElementById('generate-report');
+
+generateButton.addEventListener('click', async function () {
+  const reportType = typeSelect.value;
+  try {
+    const response = await fetch('/ai/report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ report_type: reportType })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      aiAnalysis.textContent = data.message || 'Không thể tạo báo cáo.';
+      return;
+    }
+    statsOutput.textContent = JSON.stringify(data.stats, null, 2);
+    aiAnalysis.textContent = data.analysis || 'Không có phân tích từ AI.';
+  } catch (error) {
+    aiAnalysis.textContent = 'Hệ thống AI đang gặp sự cố hoặc timeout. Dữ liệu thống kê thực tế vẫn được hiển thị ở bên trái.';
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Danh mục tài sản{% endblock %}
+{% block breadcrumb %}Danh mục{% endblock %}
+{% block content %}
+<div class="page-header"><h1>Danh mục</h1></div>
+{% if error %}<div class="alert">{{ error }}</div>{% endif %}
+<div class="card" style="margin-bottom: 20px;">
+    <h3>Thêm danh mục mới</h3>
+    <form method="post" action="/categories">
+        <div class="form-grid">
+            <div><label>Tên danh mục</label><input name="name" required></div>
+            <div style="grid-column: 1 / -1;"><label>Mô tả</label><textarea name="description"></textarea></div>
+        </div>
+        <div style="margin-top: 16px;"><button class="btn btn-primary" type="submit">Lưu</button></div>
+    </form>
+</div>
+<div class="card">
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>ID</th><th>Tên</th><th>Mô tả</th></tr></thead>
+            <tbody>
+                {% for category in categories %}
+                <tr><td>{{ category.id }}</td><td>{{ category.name }}</td><td>{{ category.description or '—' }}</td></tr>
+                {% else %}<tr><td colspan="3">Không có danh mục nào.</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

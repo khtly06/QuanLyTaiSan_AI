@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Trợ lý AI{% endblock %}
+{% block breadcrumb %}Trợ lý AI{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Trợ lý AI</h1>
+</div>
+
+<div class="card chat-box">
+    <div class="chat-log" id="chat-log">
+        <div class="message bot">Xin chào! Tôi là trợ lý AI hỗ trợ quản lý tài sản trường học. Bạn có thể hỏi về quy định, kiểm kê, sửa chữa hoặc thanh lý tài sản.</div>
+    </div>
+    <form id="chat-form">
+        <div class="form-grid" style="grid-template-columns: 1fr auto; align-items: end;">
+            <div>
+                <label>Câu hỏi</label>
+                <input id="question" name="question" placeholder="Ví dụ: Quy trình kiểm kê tài sản định kỳ như thế nào?" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Gửi</button>
+        </div>
+    </form>
+</div>
+
+<script>
+const chatForm = document.getElementById('chat-form');
+const chatLog = document.getElementById('chat-log');
+const questionInput = document.getElementById('question');
+
+function appendMessage(role, text, sources = []) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'message ' + role;
+  wrapper.innerHTML = '<div>' + text.replace(/\n/g, '<br>') + '</div>' + (sources.length ? '<div class="source-list">Nguồn: ' + sources.join(', ') + '</div>' : '');
+  chatLog.appendChild(wrapper);
+  chatLog.scrollTop = chatLog.scrollHeight;
+}
+
+chatForm.addEventListener('submit', async function (event) {
+  event.preventDefault();
+  const question = questionInput.value.trim();
+  if (!question) {
+    appendMessage('bot', 'Câu hỏi rỗng. Vui lòng nhập nội dung cần hỏi.');
+    return;
+  }
+  appendMessage('user', question);
+  questionInput.value = '';
+
+  try {
+    const response = await fetch('/ai/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      appendMessage('bot', data.message || 'Có lỗi xảy ra.');
+      return;
+    }
+    appendMessage('bot', data.answer || 'Không có câu trả lời.', data.sources || []);
+  } catch (error) {
+    appendMessage('bot', 'AI đang gặp sự cố hoặc timeout. Vui lòng thử lại sau.');
+  }
+});
+</script>
+{% endblock %}

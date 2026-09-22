@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Sửa chữa tài sản{% endblock %}
+{% block breadcrumb %}Sửa chữa{% endblock %}
+{% block content %}
+<div class="page-header"><h1>Sửa chữa</h1></div>
+{% if error %}<div class="alert">{{ error }}</div>{% endif %}
+<div class="card" style="margin-bottom: 20px;">
+    <h3>Gửi yêu cầu sửa chữa</h3>
+    <form method="post" action="/repairs">
+        <div class="form-grid">
+            <div>
+                <label>Tài sản</label>
+                <select name="asset_id" required>
+                    <option value="">-- Chọn --</option>
+                    {% for asset in assets %}<option value="{{ asset.id }}">{{ asset.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div><label>Ngày yêu cầu</label><input type="date" name="request_date"></div>
+            <div><label>Chi phí</label><input type="number" step="0.01" name="cost" value="0"></div>
+            <div><label>Trạng thái</label><select name="status"><option value="pending">Chờ xử lý</option><option value="completed">Hoàn thành</option></select></div>
+            <div style="grid-column: 1 / -1;"><label>Mô tả</label><textarea name="description" required></textarea></div>
+        </div>
+        <div style="margin-top: 16px;"><button class="btn btn-primary" type="submit">Lưu yêu cầu</button></div>
+    </form>
+</div>
+<div class="card">
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>ID</th><th>Tài sản</th><th>Mô tả</th><th>Chi phí</th><th>Trạng thái</th></tr></thead>
+            <tbody>
+                {% for repair in repairs %}
+                <tr><td>{{ repair.id }}</td><td>{{ repair.asset.name if repair.asset else repair.asset_id }}</td><td>{{ repair.description }}</td><td>{{ "{:,.0f}".format(repair.cost or 0) }} VNĐ</td><td><span class="badge status-{{ repair.status }}">{{ repair.status }}</span></td></tr>
+                {% else %}<tr><td colspan="5">Không có yêu cầu sửa chữa nào.</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

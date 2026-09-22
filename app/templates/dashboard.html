@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard - Quản lý tài sản{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Tổng quan hệ thống</h1>
+    <a class="btn btn-primary" href="/assets">+ Thêm tài sản</a>
+</div>
+
+<div class="stat-grid">
+    <div class="card metric-card">
+        <div class="metric-label">Tổng số tài sản</div>
+        <p class="metric-value">{{ summary.total_assets }}</p>
+        <div class="metric-sub">Cập nhật từ cơ sở dữ liệu</div>
+    </div>
+    <div class="card metric-card">
+        <div class="metric-label">Tài sản đang sử dụng</div>
+        <p class="metric-value">{{ summary.active_assets }}</p>
+        <div class="metric-sub">Đang hoạt động bình thường</div>
+    </div>
+    <div class="card metric-card">
+        <div class="metric-label">Tài sản đang sửa chữa</div>
+        <p class="metric-value">{{ summary.repair_assets }}</p>
+        <div class="metric-sub">Cần theo dõi</div>
+    </div>
+    <div class="card metric-card">
+        <div class="metric-label">Tài sản thanh lý</div>
+        <p class="metric-value">{{ summary.disposal_assets }}</p>
+        <div class="metric-sub">Đã xác nhận xử lý</div>
+    </div>
+    <div class="card metric-card">
+        <div class="metric-label">Tổng giá trị tài sản</div>
+        <p class="metric-value">{{ "{:,.0f}".format(summary.total_value) }} VNĐ</p>
+        <div class="metric-sub">Giá trị thực tế</div>
+    </div>
+</div>
+
+<div class="grid-2">
+    <div class="card">
+        <h3>Phân bổ theo phòng ban</h3>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Phòng ban</th>
+                        <th>Số lượng</th>
+                        <th>Giá trị</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in summary.department_rows %}
+                    <tr>
+                        <td>{{ row.name }}</td>
+                        <td>{{ row.count }}</td>
+                        <td>{{ "{:,.0f}".format(row.value) }} VNĐ</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3">Không có dữ liệu phòng ban.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card">
+        <h3>Gần đây</h3>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã</th>
+                        <th>Tên</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in summary.recent_assets %}
+                    <tr>
+                        <td>{{ item.asset_code }}</td>
+                        <td>{{ item.name }}</td>
+                        <td><span class="badge status-{{ item.status }}">{{ item.status }}</span></td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3">Không có dữ liệu mới nhất.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Quản lý người dùng{% endblock %}
+{% block breadcrumb %}Người dùng{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Quản lý người dùng</h1>
+    <div class="header-actions">
+        <button class="btn btn-primary" type="button">+ Thêm người dùng</button>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Họ tên</th>
+                    <th>Tài khoản</th>
+                    <th>Email</th>
+                    <th>Vai trò</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in users %}
+                <tr>
+                    <td>{{ item.full_name or item.username }}</td>
+                    <td>{{ item.username }}</td>
+                    <td>{{ item.email }}</td>
+                    <td><span class="badge {{ 'status-info' if item.role == 'admin' else 'status-active' }}">{{ item.display_role }}</span></td>
+                    <td><span class="badge {{ 'status-active' if item.is_active else 'status-closed' }}">{{ 'Hoạt động' if item.is_active else 'Khóa' }}</span></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5">Không có người dùng nào.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

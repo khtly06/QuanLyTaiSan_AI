@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Phòng ban{% endblock %}
+{% block breadcrumb %}Phòng ban{% endblock %}
+{% block content %}
+<div class="page-header"><h1>Phòng ban</h1></div>
+{% if error %}<div class="alert">{{ error }}</div>{% endif %}
+<div class="card" style="margin-bottom: 20px;">
+    <h3>Thêm phòng ban</h3>
+    <form method="post" action="/departments">
+        <div class="form-grid">
+            <div><label>Tên phòng ban</label><input name="name" required></div>
+            <div><label>Mã</label><input name="code" required></div>
+            <div style="grid-column: 1 / -1;"><label>Mô tả</label><textarea name="description"></textarea></div>
+        </div>
+        <div style="margin-top: 16px;"><button class="btn btn-primary" type="submit">Lưu</button></div>
+    </form>
+</div>
+<div class="card">
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>ID</th><th>Tên</th><th>Mã</th><th>Mô tả</th></tr></thead>
+            <tbody>
+                {% for department in departments %}
+                <tr><td>{{ department.id }}</td><td>{{ department.name }}</td><td>{{ department.code }}</td><td>{{ department.description or '—' }}</td></tr>
+                {% else %}<tr><td colspan="4">Không có phòng ban nào.</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

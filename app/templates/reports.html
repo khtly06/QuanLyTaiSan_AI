@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Báo cáo tài sản{% endblock %}
+{% block breadcrumb %}Báo cáo{% endblock %}
+{% block content %}
+<div class="page-header"><h1>Báo cáo</h1></div>
+<div class="stat-grid">
+    <div class="card metric-card"><div class="metric-label">Tổng số tài sản</div><p class="metric-value">{{ total_assets }}</p></div>
+    <div class="card metric-card"><div class="metric-label">Đang sử dụng</div><p class="metric-value">{{ active_assets }}</p></div>
+    <div class="card metric-card"><div class="metric-label">Đang sửa chữa</div><p class="metric-value">{{ repair_assets }}</p></div>
+    <div class="card metric-card"><div class="metric-label">Tổng giá trị</div><p class="metric-value">{{ "{:,.0f}".format(total_value) }} VNĐ</p></div>
+</div>
+<div class="grid-2">
+    <div class="card">
+        <h3>Báo cáo theo phòng ban</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Phòng ban</th><th>Số lượng</th></tr></thead>
+                <tbody>
+                    {% for name, count in department_rows %}
+                    <tr><td>{{ name }}</td><td>{{ count }}</td></tr>
+                    {% else %}<tr><td colspan="2">Không có dữ liệu.</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card">
+        <h3>Yêu cầu sửa chữa</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>ID</th><th>Trạng thái</th></tr></thead>
+                <tbody>
+                    {% for row in repair_rows %}
+                    <tr><td>{{ row.id }}</td><td><span class="badge status-{{ row.status }}">{{ row.status }}</span></td></tr>
+                    {% else %}<tr><td colspan="2">Không có dữ liệu.</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

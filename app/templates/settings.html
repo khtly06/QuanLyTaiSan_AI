@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Cài đặt hệ thống{% endblock %}
+{% block breadcrumb %}Cài đặt{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Cài đặt hệ thống</h1>
+</div>
+
+<div class="grid-2">
+    <div class="card">
+        <h3>Thông tin cơ bản</h3>
+        <div class="form-grid">
+            <div class="form-field">
+                <label>Tên trường</label>
+                <input value="Trường Đại học Mở Hà Nội" type="text">
+            </div>
+            <div class="form-field">
+                <label>Mã trường</label>
+                <input value="THMN" type="text">
+            </div>
+            <div class="form-field full">
+                <label>Địa chỉ</label>
+                <input value="123 Đường Khoa học, Hà Nội" type="text">
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Tùy chọn bảo mật</h3>
+        <div class="form-grid">
+            <div class="form-field full">
+                <label>Chế độ xác thực</label>
+                <select>
+                    <option selected>Session-based authentication</option>
+                    <option>LDAP</option>
+                    <option>SAML</option>
+                </select>
+            </div>
+            <div class="form-field full">
+                <label>Khóa hệ thống</label>
+                <select>
+                    <option selected>Cho phép truy cập</option>
+                    <option>Khóa tạm thời</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

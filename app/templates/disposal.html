@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Thanh lý tài sản{% endblock %}
+{% block breadcrumb %}Thanh lý{% endblock %}
+{% block content %}
+<div class="page-header"><h1>Thanh lý</h1></div>
+{% if error %}<div class="alert">{{ error }}</div>{% endif %}
+<div class="card" style="margin-bottom: 20px;">
+    <h3>Ghi nhận thanh lý</h3>
+    <form method="post" action="/disposals">
+        <div class="form-grid">
+            <div>
+                <label>Tài sản</label>
+                <select name="asset_id" required>
+                    <option value="">-- Chọn --</option>
+                    {% for asset in assets %}<option value="{{ asset.id }}">{{ asset.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div><label>Ngày thanh lý</label><input type="date" name="disposal_date"></div>
+            <div><label>Giá trị thanh lý</label><input type="number" step="0.01" name="liquidation_value" value="0"></div>
+            <div><label>Trạng thái</label><select name="status"><option value="requested">Yêu cầu</option><option value="approved">Đã duyệt</option></select></div>
+            <div style="grid-column: 1 / -1;"><label>Lý do</label><textarea name="reason" required></textarea></div>
+        </div>
+        <div style="margin-top: 16px;"><button class="btn btn-primary" type="submit">Lưu</button></div>
+    </form>
+</div>
+<div class="card">
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>ID</th><th>Tài sản</th><th>Lý do</th><th>Giá trị</th><th>Trạng thái</th></tr></thead>
+            <tbody>
+                {% for disposal in disposals %}
+                <tr><td>{{ disposal.id }}</td><td>{{ disposal.asset.name if disposal.asset else disposal.asset_id }}</td><td>{{ disposal.reason }}</td><td>{{ "{:,.0f}".format(disposal.liquidation_value or 0) }} VNĐ</td><td><span class="badge status-{{ disposal.status }}">{{ disposal.status }}</span></td></tr>
+                {% else %}<tr><td colspan="5">Không có hồ sơ thanh lý.</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Điều chuyển tài sản{% endblock %}
+{% block breadcrumb %}Điều chuyển{% endblock %}
+{% block content %}
+<div class="page-header"><h1>Điều chuyển</h1></div>
+{% if error %}<div class="alert">{{ error }}</div>{% endif %}
+<div class="card" style="margin-bottom: 20px;">
+    <h3>Ghi nhận điều chuyển</h3>
+    <form method="post" action="/transfers">
+        <div class="form-grid">
+            <div>
+                <label>Tài sản</label>
+                <select name="asset_id" required>
+                    <option value="">-- Chọn --</option>
+                    {% for asset in assets %}<option value="{{ asset.id }}">{{ asset.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div>
+                <label>Phòng ban hiện tại</label>
+                <select name="from_department_id" required>
+                    <option value="">-- Chọn --</option>
+                    {% for department in departments %}<option value="{{ department.id }}">{{ department.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div>
+                <label>Phòng ban mới</label>
+                <select name="to_department_id" required>
+                    <option value="">-- Chọn --</option>
+                    {% for department in departments %}<option value="{{ department.id }}">{{ department.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div><label>Ngày điều chuyển</label><input type="date" name="transfer_date"></div>
+            <div style="grid-column: 1 / -1;"><label>Lý do</label><textarea name="reason"></textarea></div>
+            <div style="grid-column: 1 / -1;"><label>Ghi chú</label><textarea name="notes"></textarea></div>
+        </div>
+        <div style="margin-top: 16px;"><button class="btn btn-primary" type="submit">Lưu</button></div>
+    </form>
+</div>
+<div class="card">
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>ID</th><th>Tài sản</th><th>Từ</th><th>Đến</th><th>Ngày</th></tr></thead>
+            <tbody>
+                {% for transfer in transfers %}
+                <tr><td>{{ transfer.id }}</td><td>{{ transfer.asset.name if transfer.asset else transfer.asset_id }}</td><td>{{ transfer.from_department.name if transfer.from_department else '—' }}</td><td>{{ transfer.to_department.name if transfer.to_department else '—' }}</td><td>{{ transfer.transfer_date }}</td></tr>
+                {% else %}<tr><td colspan="5">Không có lịch sử điều chuyển.</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

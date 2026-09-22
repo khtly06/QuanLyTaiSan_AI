@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block title %}Quản lý tài sản{% endblock %}
+{% block breadcrumb %}Quản lý tài sản{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Quản lý tài sản</h1>
+    <a class="btn btn-secondary" href="/dashboard">← Về Dashboard</a>
+</div>
+
+{% if error %}<div class="alert">{{ error }}</div>{% endif %}
+
+<div class="card" style="margin-bottom: 20px;">
+    <h3>Thêm tài sản mới</h3>
+    <form method="post" action="/assets">
+        <div class="form-grid">
+            <div>
+                <label>Mã tài sản</label>
+                <input name="asset_code" required>
+            </div>
+            <div>
+                <label>Tên tài sản</label>
+                <input name="name" required>
+            </div>
+            <div>
+                <label>Danh mục</label>
+                <select name="category_id" required>
+                    <option value="">-- Chọn --</option>
+                    {% for category in categories %}<option value="{{ category.id }}">{{ category.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div>
+                <label>Phòng ban</label>
+                <select name="department_id" required>
+                    <option value="">-- Chọn --</option>
+                    {% for department in departments %}<option value="{{ department.id }}">{{ department.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div>
+                <label>Người sử dụng</label>
+                <input name="user_name">
+            </div>
+            <div>
+                <label>Ngày mua</label>
+                <input type="date" name="purchase_date">
+            </div>
+            <div>
+                <label>Giá trị (VNĐ)</label>
+                <input type="number" step="0.01" name="value" value="0">
+            </div>
+            <div>
+                <label>Trạng thái</label>
+                <select name="status">
+                    <option value="active">Đang sử dụng</option>
+                    <option value="repair">Đang sửa chữa</option>
+                    <option value="disposal">Thanh lý</option>
+                </select>
+            </div>
+            <div>
+                <label>Vị trí</label>
+                <input name="location">
+            </div>
+            <div style="grid-column: 1 / -1;">
+                <label>Ghi chú</label>
+                <textarea name="notes"></textarea>
+            </div>
+        </div>
+        <div style="margin-top: 16px;">
+            <button class="btn btn-primary" type="submit">Lưu tài sản</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h3>Danh sách tài sản</h3>
+    <div style="margin-bottom: 12px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <form method="get" style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <input name="q" placeholder="Tìm kiếm theo tên hoặc mã" value="{{ request.args.get('q', '') }}">
+            <select name="category_id">
+                <option value="">Tất cả danh mục</option>
+                {% for category in categories %}<option value="{{ category.id }}" {% if request.args.get('category_id') == category.id|string %}selected{% endif %}>{{ category.name }}</option>{% endfor %}
+            </select>
+            <select name="department_id">
+                <option value="">Tất cả phòng ban</option>
+                {% for department in departments %}<option value="{{ department.id }}" {% if request.args.get('department_id') == department.id|string %}selected{% endif %}>{{ department.name }}</option>{% endfor %}
+            </select>
+            <select name="status">
+                <option value="">Tất cả trạng thái</option>
+                <option value="active" {% if request.args.get('status') == 'active' %}selected{% endif %}>Đang sử dụng</option>
+                <option value="repair" {% if request.args.get('status') == 'repair' %}selected{% endif %}>Đang sửa chữa</option>
+                <option value="disposal" {% if request.args.get('status') == 'disposal' %}selected{% endif %}>Thanh lý</option>
+            </select>
+            <button class="btn btn-primary" type="submit">Lọc</button>
+        </form>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Mã</th>
+                    <th>Tên tài sản</th>
+                    <th>Phòng ban</th>
+                    <th>Danh mục</th>
+                    <th>Giá trị</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for asset in assets %}
+                <tr>
+                    <td>{{ asset.asset_code }}</td>
+                    <td>{{ asset.name }}</td>
+                    <td>{{ asset.department.name if asset.department else '—' }}</td>
+                    <td>{{ asset.category.name if asset.category else '—' }}</td>
+                    <td>{{ "{:,.0f}".format(asset.value or 0) }} VNĐ</td>
+                    <td><span class="badge status-{{ asset.status }}">{{ asset.status }}</span></td>
+                    <td>
+                        <a href="/assets/{{ asset.id }}">Chi tiết</a> |
+                        <form method="post" action="/assets/{{ asset.id }}/delete" style="display:inline;">
+                            <button class="btn" type="submit" style="padding: 4px 8px; background: #fef2f2; color: #991b1b;">Xóa</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7">Không có dữ liệu tài sản.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
