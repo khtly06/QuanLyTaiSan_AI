@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}Trợ lý AI{% endblock %}
+{% block breadcrumb %}Trợ lý AI{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-heading"><i class="bi bi-robot"></i><div><h1>Trợ lý AI</h1><p class="page-description">Tra cứu nhanh quy định và quy trình quản lý tài sản bằng dữ liệu RAG của trường.</p></div></div>
+</div>
+
+<div class="ai-shell">
+<div class="card chat-panel">
+  <div class="card-header"><div><h3>Cuộc hội thoại</h3><p>Đặt câu hỏi về chính sách, kiểm kê, sửa chữa hoặc thanh lý.</p></div><span class="badge status-active"><i class="bi bi-circle-fill"></i> Sẵn sàng</span></div>
+  <div class="chat-log" id="chat-log" aria-live="polite">
+    <div class="message bot"><div>Xin chào! Tôi có thể hỗ trợ bạn tra cứu quy định quản lý tài sản trường học.</div><div class="source-list"><strong>Nguồn:</strong> Sẵn sàng tìm trong tài liệu nội bộ</div></div>
+    </div>
+  <form id="chat-form" class="chat-form">
+    <div class="form-field"><label for="question">Câu hỏi của bạn</label><input id="question" name="question" placeholder="Ví dụ: Quy trình kiểm kê định kỳ như thế nào?" autocomplete="off" required></div>
+    <button type="submit" class="btn btn-primary" id="send-button"><i class="bi bi-send"></i> Gửi</button>
+  </form>
+</div>
+<aside class="ai-side">
+  <div class="card"><div class="card-header"><div><h3>Gợi ý câu hỏi</h3><p>Bắt đầu từ một chủ đề phổ biến.</p></div><i class="bi bi-lightbulb"></i></div>
+    <ul class="quick-tips"><li><i class="bi bi-clipboard-check"></i> Quy trình kiểm kê tài sản?</li><li><i class="bi bi-file-earmark-text"></i> Quy định quản lý tài sản?</li><li><i class="bi bi-trash3"></i> Điều kiện thanh lý tài sản?</li></ul>
+  </div>
+  <div class="card"><div class="card-header"><div><h3>Nguồn tham chiếu</h3><p>AI luôn trả về tài liệu liên quan nếu tìm thấy.</p></div><i class="bi bi-journal-text"></i></div><div class="empty-state">Nguồn sẽ xuất hiện dưới câu trả lời.</div></div>
+</aside>
+</div>
+
+<script>
+const chatForm = document.getElementById('chat-form');
+const chatLog = document.getElementById('chat-log');
+const questionInput = document.getElementById('question');
+
+function appendMessage(role, text, sources = []) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'message ' + role;
+  wrapper.innerHTML = '<div>' + text.replace(/\n/g, '<br>') + '</div>' + (sources.length ? '<div class="source-list"><strong>Nguồn:</strong> ' + sources.join(', ') + '</div>' : '');
+  chatLog.appendChild(wrapper);
+  chatLog.scrollTop = chatLog.scrollHeight;
+}
+
+chatForm.addEventListener('submit', async function (event) {
+  event.preventDefault();
+  const question = questionInput.value.trim();
+  if (!question) {
+    appendMessage('bot', 'Câu hỏi rỗng. Vui lòng nhập nội dung cần hỏi.');
+    return;
+  }
+  appendMessage('user', question);
+  questionInput.value = '';
+  const loading = document.createElement('div');
+  loading.className = 'message bot typing-indicator';
+  loading.textContent = 'Đang tìm tài liệu và tạo câu trả lời...';
+  chatLog.appendChild(loading);
+  chatForm.querySelector('button').disabled = true;
+
+  try {
+    const response = await fetch('/ai/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question })
+    });
+    const data = await response.json();
+    loading.remove();
+    if (!response.ok) {
+      appendMessage('bot', data.message || 'Có lỗi xảy ra.');
+      return;
+    }
+    appendMessage('bot', data.answer || 'Không có câu trả lời.', data.sources || []);
+  } catch (error) {
+    loading.remove();
+    appendMessage('bot', 'AI đang gặp sự cố hoặc timeout. Vui lòng thử lại sau.');
+  } finally {
+    chatForm.querySelector('button').disabled = false;
+    questionInput.focus();
+  }
+});
+</script>
+{% endblock %}

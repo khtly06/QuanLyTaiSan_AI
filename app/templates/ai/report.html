@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}AI Báo cáo{% endblock %}
+{% block breadcrumb %}AI Báo cáo{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-heading"><i class="bi bi-stars"></i><div><h1>AI Báo cáo</h1><p class="page-description">Chọn một góc nhìn để xem thống kê thực tế và nhận phân tích từ AI.</p></div></div>
+</div>
+
+<div class="card filter-card">
+  <div class="card-header"><div><h3>Thiết lập báo cáo</h3><p>Dữ liệu được lấy trực tiếp từ cơ sở dữ liệu hiện tại.</p></div><i class="bi bi-sliders"></i></div>
+  <div class="form-grid">
+    <div class="form-field">
+      <label for="report-type">Loại báo cáo</label>
+            <select id="report-type">
+                <option value="overview">Tổng quan</option>
+                <option value="department">Theo phòng ban</option>
+                <option value="repair">Sửa chữa</option>
+                <option value="disposal">Thanh lý</option>
+                <option value="inventory">Kiểm kê</option>
+            </select>
+        </div>
+        <div class="form-field">
+          <label>&nbsp;</label><button class="btn btn-primary" id="generate-report"><i class="bi bi-magic"></i> Tạo báo cáo</button>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom: 20px;">
+  <div class="card-header"><div><h3>Chỉ số thực tế</h3><p>Các chỉ số được cập nhật sau khi tạo báo cáo.</p></div><span class="badge status-info" id="report-status">Chưa tạo</span></div>
+  <div class="report-stat-grid" id="report-stat-grid"><div class="report-stat"><span>Trạng thái</span><strong>Chưa có dữ liệu</strong></div></div>
+  <pre id="stats-output" class="report-output" hidden>{}</pre>
+</div>
+<div class="ai-report-grid">
+  <div class="card">
+    <div class="card-header"><div><h3>Dữ liệu thống kê</h3><p>JSON gốc từ API, dùng để đối chiếu.</p></div><i class="bi bi-database"></i></div>
+    <pre id="stats-detail" class="report-output">Chưa có báo cáo. Hãy chọn loại và tạo báo cáo.</pre>
+    </div>
+    <div class="card">
+    <div class="card-header"><div><h3>Phân tích của AI</h3><p>Nhận định được tạo từ đúng bộ dữ liệu bên trái.</p></div><i class="bi bi-stars"></i></div>
+    <div id="ai-analysis" class="report-analysis">Chưa có phân tích AI.</div>
+    </div>
+</div>
+
+<script>
+const typeSelect = document.getElementById('report-type');
+const statsOutput = document.getElementById('stats-output');
+const aiAnalysis = document.getElementById('ai-analysis');
+const generateButton = document.getElementById('generate-report');
+const statGrid = document.getElementById('report-stat-grid');
+const statsDetail = document.getElementById('stats-detail');
+const reportStatus = document.getElementById('report-status');
+
+function renderStats(stats) {
+  const entries = [];
+  if (stats.total_assets !== undefined) entries.push(['Tổng tài sản', stats.total_assets]);
+  if (stats.active_assets !== undefined) entries.push(['Đang sử dụng', stats.active_assets]);
+  if (stats.repair_assets !== undefined) entries.push(['Đang sửa chữa', stats.repair_assets]);
+  if (stats.disposal_assets !== undefined) entries.push(['Đang thanh lý', stats.disposal_assets]);
+  if (stats.total_value !== undefined) entries.push(['Tổng giá trị', Number(stats.total_value).toLocaleString('vi-VN') + ' VNĐ']);
+  if (!entries.length) entries.push(['Số nhóm dữ liệu', Object.keys(stats).length]);
+  statGrid.innerHTML = entries.map(([label, value]) => '<div class="report-stat"><span>' + label + '</span><strong>' + value + '</strong></div>').join('');
+}
+
+generateButton.addEventListener('click', async function () {
+  const reportType = typeSelect.value;
+  generateButton.disabled = true;
+  generateButton.classList.add('is-loading');
+  reportStatus.textContent = 'Đang tạo';
+  aiAnalysis.textContent = 'Đang phân tích dữ liệu thực tế...';
+  try {
+    const response = await fetch('/ai/report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ report_type: reportType })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      aiAnalysis.textContent = data.message || 'Không thể tạo báo cáo.';
+      return;
+    }
+    renderStats(data.stats);
+    statsDetail.textContent = JSON.stringify(data.stats, null, 2);
+    statsOutput.textContent = JSON.stringify(data.stats, null, 2);
+    aiAnalysis.textContent = data.analysis || 'Không có phân tích từ AI.';
+    reportStatus.textContent = 'Đã cập nhật';
+  } catch (error) {
+    aiAnalysis.textContent = 'Hệ thống AI đang gặp sự cố hoặc timeout. Dữ liệu thống kê thực tế vẫn được hiển thị ở bên trái.';
+  } finally {
+    generateButton.disabled = false;
+    generateButton.classList.remove('is-loading');
+  }
+});
+</script>
+{% endblock %}

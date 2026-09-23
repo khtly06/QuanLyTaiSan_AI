@@ -1,0 +1,433 @@
+{% extends 'base.html' %}
+
+{% block title %}Tổng quan - Quản lý tài sản{% endblock %}
+
+{% block breadcrumb %}Tổng quan{% endblock %}
+
+{% block content %}
+
+<!-- =====================================================
+     DASHBOARD HEADER
+     ===================================================== -->
+
+<div class="dashboard-header">
+
+    <div class="dashboard-title">
+
+        <div class="dashboard-icon">
+            <i class="bi bi-grid-1x2-fill"></i>
+        </div>
+
+        <div>
+            <h1>Tổng quan hệ thống</h1>
+            <p>
+                Theo dõi tình hình tài sản và hoạt động quản lý
+                trong trường học.
+            </p>
+        </div>
+
+    </div>
+
+    <a
+        class="btn btn-primary dashboard-add-btn"
+        href="{{ url_for('assets.list_assets') }}#asset-form"
+    >
+        <i class="bi bi-plus-lg"></i>
+        Thêm tài sản
+    </a>
+
+</div>
+
+
+<!-- =====================================================
+     STATISTICS
+     ===================================================== -->
+
+<div class="dashboard-stat-grid">
+
+    <!-- Tổng tài sản -->
+
+    <div class="dashboard-stat-card">
+
+        <div class="stat-top">
+
+            <div class="stat-icon stat-icon-purple">
+                <i class="bi bi-box-seam"></i>
+            </div>
+
+            <span class="stat-tag">
+                Tổng
+            </span>
+
+        </div>
+
+        <div class="stat-info">
+
+            <span class="stat-label">
+                Tổng số tài sản
+            </span>
+
+            <strong class="stat-number">
+                {{ summary.total_assets }}
+            </strong>
+
+            <span class="stat-description">
+                Tài sản đang được quản lý
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- Đang sử dụng -->
+
+    <div class="dashboard-stat-card">
+
+        <div class="stat-top">
+
+            <div class="stat-icon stat-icon-green">
+                <i class="bi bi-check-circle"></i>
+            </div>
+
+            <span class="stat-tag">
+                Hoạt động
+            </span>
+
+        </div>
+
+        <div class="stat-info">
+
+            <span class="stat-label">
+                Đang sử dụng
+            </span>
+
+            <strong class="stat-number">
+                {{ summary.active_assets }}
+            </strong>
+
+            <span class="stat-description">
+                Đang hoạt động bình thường
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- Sửa chữa -->
+
+    <div class="dashboard-stat-card">
+
+        <div class="stat-top">
+
+            <div class="stat-icon stat-icon-orange">
+                <i class="bi bi-wrench-adjustable"></i>
+            </div>
+
+            <span class="stat-tag">
+                Theo dõi
+            </span>
+
+        </div>
+
+        <div class="stat-info">
+
+            <span class="stat-label">
+                Đang sửa chữa
+            </span>
+
+            <strong class="stat-number">
+                {{ summary.repair_assets }}
+            </strong>
+
+            <span class="stat-description">
+                Tài sản cần xử lý
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- Thanh lý -->
+
+    <div class="dashboard-stat-card">
+
+        <div class="stat-top">
+
+            <div class="stat-icon stat-icon-red">
+                <i class="bi bi-trash3"></i>
+            </div>
+
+            <span class="stat-tag">
+                Xử lý
+            </span>
+
+        </div>
+
+        <div class="stat-info">
+
+            <span class="stat-label">
+                Tài sản thanh lý
+            </span>
+
+            <strong class="stat-number">
+                {{ summary.disposal_assets }}
+            </strong>
+
+            <span class="stat-description">
+                Đã xác nhận xử lý
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- Giá trị -->
+
+    <div class="dashboard-stat-card dashboard-value-card">
+
+        <div class="stat-top">
+
+            <div class="stat-icon stat-icon-blue">
+                <i class="bi bi-currency-dollar"></i>
+            </div>
+
+            <span class="stat-tag">
+                Giá trị
+            </span>
+
+        </div>
+
+        <div class="stat-info">
+
+            <span class="stat-label">
+                Tổng giá trị tài sản
+            </span>
+
+            <strong class="stat-number stat-money">
+                {{ "{:,.0f}".format(summary.total_value) }}
+            </strong>
+
+            <span class="stat-description">
+                Đơn vị: VNĐ
+            </span>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     MAIN DASHBOARD
+     ===================================================== -->
+
+<div class="dashboard-content-grid">
+
+
+    <!-- ================= PHÒNG BAN ================= -->
+
+    <section class="card dashboard-panel">
+
+        <div class="dashboard-panel-header">
+
+            <div class="panel-title">
+
+                <div class="panel-icon">
+                    <i class="bi bi-building"></i>
+                </div>
+
+                <div>
+                    <h3>Phân bổ theo phòng ban</h3>
+                    <p>
+                        Số lượng và giá trị tài sản theo đơn vị
+                    </p>
+                </div>
+
+            </div>
+
+            <span class="panel-badge">
+                {{ summary.department_rows|length }} phòng ban
+            </span>
+
+        </div>
+
+
+        <div class="table-wrap dashboard-table">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Phòng ban</th>
+                        <th>Số lượng</th>
+                        <th>Giá trị</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for row in summary.department_rows %}
+
+                    <tr>
+
+                        <td>
+                            <div class="table-name">
+                                <div class="table-avatar">
+                                    <i class="bi bi-building"></i>
+                                </div>
+
+                                <span>
+                                    {{ row.name }}
+                                </span>
+                            </div>
+                        </td>
+
+                        <td>
+                            <strong>
+                                {{ row.count }}
+                            </strong>
+                        </td>
+
+                        <td>
+                            <span class="value-text">
+                                {{ "{:,.0f}".format(row.value) }} VNĐ
+                            </span>
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="3">
+
+                            <div class="dashboard-empty">
+                                <i class="bi bi-inbox"></i>
+                                <span>
+                                    Không có dữ liệu phòng ban.
+                                </span>
+                            </div>
+
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= TÀI SẢN GẦN ĐÂY ================= -->
+
+    <section class="card dashboard-panel">
+
+        <div class="dashboard-panel-header">
+
+            <div class="panel-title">
+
+                <div class="panel-icon">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+
+                <div>
+                    <h3>Tài sản gần đây</h3>
+                    <p>
+                        Những tài sản được cập nhật gần nhất
+                    </p>
+                </div>
+
+            </div>
+
+            <a
+                href="{{ url_for('assets.list_assets') }}"
+                class="panel-link"
+            >
+                Xem tất cả
+                <i class="bi bi-arrow-right"></i>
+            </a>
+
+        </div>
+
+
+        <div class="table-wrap dashboard-table">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Mã tài sản</th>
+                        <th>Tên tài sản</th>
+                        <th>Trạng thái</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for item in summary.recent_assets %}
+
+                    <tr>
+
+                        <td>
+                            <span class="asset-code">
+                                {{ item.asset_code }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <strong class="asset-name">
+                                {{ item.name }}
+                            </strong>
+                        </td>
+
+                        <td>
+
+                            <span class="badge status-{{ item.status }}">
+                                {{ item.status }}
+                            </span>
+
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="3">
+
+                            <div class="dashboard-empty">
+                                <i class="bi bi-inbox"></i>
+                                <span>
+                                    Không có dữ liệu mới nhất.
+                                </span>
+                            </div>
+
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</div>
+
+{% endblock %}

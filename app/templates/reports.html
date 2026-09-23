@@ -1,0 +1,454 @@
+{% extends 'base.html' %}
+
+{% block title %}Báo cáo tài sản{% endblock %}
+{% block breadcrumb %}Báo cáo{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h1>Báo cáo tài sản</h1>
+        <p class="text-muted">
+            Tổng hợp tình hình quản lý và sử dụng tài sản
+        </p>
+    </div>
+</div>
+
+<!-- ================= TỔNG QUAN ================= -->
+
+<div class="stat-grid">
+
+    <div class="card metric-card">
+        <div class="metric-label">Tổng số tài sản</div>
+        <p class="metric-value">{{ total_assets }}</p>
+    </div>
+
+    <div class="card metric-card">
+        <div class="metric-label">Đang sử dụng</div>
+        <p class="metric-value">{{ active_assets }}</p>
+    </div>
+
+    <div class="card metric-card">
+        <div class="metric-label">Đang sửa chữa</div>
+        <p class="metric-value">{{ repair_assets }}</p>
+    </div>
+
+    <div class="card metric-card">
+        <div class="metric-label">Đã thanh lý</div>
+        <p class="metric-value">{{ disposed_assets }}</p>
+    </div>
+
+    <div class="card metric-card">
+        <div class="metric-label">Tổng giá trị</div>
+        <p class="metric-value">
+            {{ "{:,.0f}".format(total_value) }} VNĐ
+        </p>
+    </div>
+
+</div>
+
+
+<!-- ================= PHÒNG BAN + LOẠI TÀI SẢN ================= -->
+
+<div class="grid-2">
+
+    <!-- Theo phòng ban -->
+    <div class="card">
+
+        <h3>Thống kê theo phòng ban</h3>
+
+        <div class="table-wrap">
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Phòng ban</th>
+                        <th>Số lượng</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for name, count in department_rows %}
+
+                    <tr>
+                        <td>{{ name }}</td>
+                        <td>
+                            <strong>{{ count }}</strong>
+                        </td>
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="2">
+                            Không có dữ liệu.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+        </div>
+
+    </div>
+
+
+    <!-- Theo loại tài sản -->
+    <div class="card">
+
+        <h3>Thống kê theo loại tài sản</h3>
+
+        <div class="table-wrap">
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Loại tài sản</th>
+                        <th>Số lượng</th>
+                        <th>Giá trị</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for name, count, category_value in category_rows %}
+
+                    <tr>
+                        <td>{{ name }}</td>
+                        <td>{{ count }}</td>
+                        <td>
+                            {{ "{:,.0f}".format(category_value) }} VNĐ
+                        </td>
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="3">
+                            Không có dữ liệu.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ================= SỬA CHỮA ================= -->
+
+<div class="card">
+
+    <h3>Báo cáo sửa chữa</h3>
+
+    <div class="stat-grid">
+
+        <div>
+            <div class="metric-label">Tổng yêu cầu</div>
+            <strong>{{ total_repairs }}</strong>
+        </div>
+
+        <div>
+            <div class="metric-label">Đang chờ</div>
+            <strong>{{ pending_repairs }}</strong>
+        </div>
+
+        <div>
+            <div class="metric-label">Đã hoàn thành</div>
+            <strong>{{ completed_repairs }}</strong>
+        </div>
+
+        <div>
+            <div class="metric-label">Tổng chi phí</div>
+            <strong>
+                {{ "{:,.0f}".format(repair_cost) }} VNĐ
+            </strong>
+        </div>
+
+    </div>
+
+    <div class="table-wrap">
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tài sản</th>
+                    <th>Ngày yêu cầu</th>
+                    <th>Trạng thái</th>
+                    <th>Chi phí</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for row in repair_rows %}
+
+                <tr>
+
+                    <td>{{ row.id }}</td>
+
+                    <td>
+                        {{ row.asset.name if row.asset else '-' }}
+                    </td>
+
+                    <td>
+                        {{ row.request_date.strftime('%d/%m/%Y') if row.request_date else '-' }}
+                    </td>
+
+                    <td>
+                        <span class="badge status-{{ row.status }}">
+                            {{ row.status }}
+                        </span>
+                    </td>
+
+                    <td>
+                        {{ "{:,.0f}".format(row.cost or 0) }} VNĐ
+                    </td>
+
+                </tr>
+
+                {% else %}
+
+                <tr>
+                    <td colspan="5">
+                        Không có yêu cầu sửa chữa.
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<!-- ================= ĐIỀU CHUYỂN ================= -->
+
+<div class="card">
+
+    <h3>Điều chuyển tài sản</h3>
+
+    <p>
+        Tổng số lần điều chuyển:
+        <strong>{{ total_transfers }}</strong>
+    </p>
+
+    <div class="table-wrap">
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tài sản</th>
+                    <th>Từ phòng ban</th>
+                    <th>Đến phòng ban</th>
+                    <th>Ngày điều chuyển</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for row in transfer_rows %}
+
+                <tr>
+
+                    <td>{{ row.id }}</td>
+
+                    <td>
+                        {{ row.asset.name if row.asset else '-' }}
+                    </td>
+
+                    <td>
+                        {{ row.from_department.name if row.from_department else '-' }}
+                    </td>
+
+                    <td>
+                        {{ row.to_department.name if row.to_department else '-' }}
+                    </td>
+
+                    <td>
+                        {{ row.transfer_date.strftime('%d/%m/%Y') if row.transfer_date else '-' }}
+                    </td>
+
+                </tr>
+
+                {% else %}
+
+                <tr>
+                    <td colspan="5">
+                        Chưa có dữ liệu điều chuyển.
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<!-- ================= THANH LÝ ================= -->
+
+<div class="card">
+
+    <h3>Thanh lý tài sản</h3>
+
+    <p>
+        Tổng số hồ sơ thanh lý:
+        <strong>{{ total_disposals }}</strong>
+    </p>
+
+    <div class="table-wrap">
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tài sản</th>
+                    <th>Ngày thanh lý</th>
+                    <th>Lý do</th>
+                    <th>Giá trị thanh lý</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for row in disposal_rows %}
+
+                <tr>
+
+                    <td>{{ row.id }}</td>
+
+                    <td>
+                        {{ row.asset.name if row.asset else '-' }}
+                    </td>
+
+                    <td>
+                        {{ row.disposal_date.strftime('%d/%m/%Y') if row.disposal_date else '-' }}
+                    </td>
+
+                    <td>{{ row.reason }}</td>
+
+                    <td>
+                        {{ "{:,.0f}".format(row.liquidation_value or 0) }} VNĐ
+                    </td>
+
+                    <td>
+                        <span class="badge status-{{ row.status }}">
+                            {{ row.status }}
+                        </span>
+                    </td>
+
+                </tr>
+
+                {% else %}
+
+                <tr>
+                    <td colspan="6">
+                        Chưa có dữ liệu thanh lý.
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<!-- ================= KIỂM KÊ ================= -->
+
+<div class="card">
+
+    <h3>Kiểm kê tài sản</h3>
+
+    <p>
+        Tổng số đợt kiểm kê:
+        <strong>{{ total_inventory }}</strong>
+    </p>
+
+    <div class="table-wrap">
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tên đợt kiểm kê</th>
+                    <th>Ngày bắt đầu</th>
+                    <th>Ngày kết thúc</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for row in inventory_rows %}
+
+                <tr>
+
+                    <td>{{ row.id }}</td>
+
+                    <td>{{ row.name }}</td>
+
+                    <td>
+                        {{ row.start_date.strftime('%d/%m/%Y') if row.start_date else '-' }}
+                    </td>
+
+                    <td>
+                        {{ row.end_date.strftime('%d/%m/%Y') if row.end_date else '-' }}
+                    </td>
+
+                    <td>
+                        <span class="badge status-{{ row.status }}">
+                            {{ row.status }}
+                        </span>
+                    </td>
+
+                </tr>
+
+                {% else %}
+
+                <tr>
+                    <td colspan="5">
+                        Chưa có dữ liệu kiểm kê.
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

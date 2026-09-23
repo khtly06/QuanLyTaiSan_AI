@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block title %}
+        Quản lý tài sản trường học
+        {% endblock %}
+    </title>
+
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <!-- Bootstrap Icons -->
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    >
+
+    <!-- Main CSS -->
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+</head>
+
+<body>
+
+{% if request.path != '/login' %}
+
+<div class="app-shell">
+
+    <!-- ==================================================
+         SIDEBAR
+         ================================================== -->
+
+    <aside class="sidebar open">
+
+        <!-- LOGO -->
+        <div class="sidebar-header">
+
+            <div class="sidebar-logo">
+                <i class="bi bi-building-check"></i>
+            </div>
+
+            <div class="brand-copy">
+                <strong>QL TÀI SẢN</strong>
+                <small>Smart Asset Management</small>
+            </div>
+
+        </div>
+
+
+        <!-- MENU -->
+        <nav class="nav-group">
+
+            <div class="nav-label">
+                MENU
+            </div>
+
+
+            <!-- ================= TỔNG QUAN ================= -->
+
+            <a
+                href="{{ url_for('dashboard.dashboard') }}"
+                class="nav-item {% if request.path == '/dashboard' %}active{% endif %}"
+            >
+                <i class="bi bi-house-door"></i>
+                <span>Tổng quan</span>
+            </a>
+
+
+            <!-- ================= TÀI SẢN ================= -->
+
+            <div
+                class="nav-item {% if request.path.startswith('/assets') %}active child-open{% endif %}"
+            >
+                <i class="bi bi-box-seam"></i>
+                <span>Tài sản</span>
+            </div>
+
+            <div class="child-list">
+
+                <a href="{{ url_for('assets.list_assets') }}">
+                    <i class="bi bi-list-ul"></i>
+                    Danh sách tài sản
+                </a>
+
+                <a href="{{ url_for('assets.list_assets') }}#asset-form">
+                    <i class="bi bi-plus-circle"></i>
+                    Thêm tài sản
+                </a>
+
+                <a href="{{ url_for('assets.list_assets') }}#asset-list">
+                    <i class="bi bi-search"></i>
+                    Tra cứu tài sản
+                </a>
+
+            </div>
+
+           <!-- ================= KIỂM KÊ ================= -->
+
+<a
+    href="{{ url_for('inventory.list_inventory') }}"
+    class="nav-item {% if request.path.startswith('/inventory') %}active child-open{% endif %}"
+>
+    <i class="bi bi-clipboard-check"></i>
+    <span>Kiểm kê</span>
+</a>
+
+<div class="child-list">
+
+    <a href="{{ url_for('inventory.list_inventory') }}">
+        <i class="bi bi-clipboard"></i>
+        Đợt kiểm kê
+    </a>
+
+    <a href="{{ url_for('inventory.list_inventory') }}">
+        <i class="bi bi-check2-square"></i>
+        Ghi nhận kiểm kê
+    </a>
+
+</div>
+
+            <!-- ================= ĐIỀU CHUYỂN ================= -->
+
+            <a
+                href="{{ url_for('transfer.list_transfers') }}"
+                class="nav-item {% if request.path.startswith('/transfers') %}active{% endif %}"
+            >
+                <i class="bi bi-arrow-left-right"></i>
+                <span>Điều chuyển</span>
+            </a>
+
+
+            <!-- ================= SỬA CHỮA ================= -->
+
+            <a
+                href="{{ url_for('repair.list_repairs') }}"
+                class="nav-item {% if request.path.startswith('/repairs') %}active{% endif %}"
+            >
+                <i class="bi bi-wrench-adjustable-circle"></i>
+                <span>Sửa chữa</span>
+            </a>
+
+
+            <!-- ================= THANH LÝ ================= -->
+
+            <a
+                href="{{ url_for('disposal.list_disposals') }}"
+                class="nav-item {% if request.path.startswith('/disposals') %}active{% endif %}"
+            >
+                <i class="bi bi-trash3"></i>
+                <span>Thanh lý</span>
+            </a>
+
+
+            <!-- ================= BÁO CÁO ================= -->
+
+            <a
+                href="{{ url_for('reports.reports') }}"
+                class="nav-item {% if request.path == '/reports' %}active{% endif %}"
+            >
+                <i class="bi bi-bar-chart"></i>
+                <span>Báo cáo</span>
+            </a>
+
+
+            <!-- ==================================================
+                 AI
+                 ================================================== -->
+
+            <a
+                href="{{ url_for('ai.chat') }}"
+                class="nav-item {% if request.path == '/ai/chat' %}active{% endif %}"
+            >
+                <i class="bi bi-robot"></i>
+                <span>Trợ lý AI</span>
+            </a>
+
+
+            <a
+                href="{{ url_for('ai.report') }}"
+                class="nav-item {% if request.path == '/ai/report' %}active{% endif %}"
+            >
+                <i class="bi bi-stars"></i>
+                <span>AI Báo cáo</span>
+            </a>
+
+
+            <!-- ==================================================
+                 QUẢN TRỊ
+                 Chỉ ADMIN mới thấy
+                 ================================================== -->
+
+            {% if current_user and current_user.is_admin %}
+
+                <a
+                    href="{{ url_for('auth.users') }}"
+                    class="nav-item {% if request.path == '/users' %}active{% endif %}"
+                >
+                    <i class="bi bi-people"></i>
+                    <span>Người dùng</span>
+                </a>
+
+
+                <a
+                    href="{{ url_for('auth.settings') }}"
+                    class="nav-item {% if request.path == '/settings' %}active{% endif %}"
+                >
+                    <i class="bi bi-sliders"></i>
+                    <span>Hệ thống</span>
+                </a>
+
+            {% endif %}
+
+        </nav>
+
+    </aside>
+
+
+    <!-- ==================================================
+         MAIN PANEL
+         ================================================== -->
+
+    <div class="main-panel">
+
+        <!-- ================= TOPBAR ================= -->
+
+        <header class="topbar">
+
+            <div class="topbar-left">
+
+                <button
+                    class="menu-toggle"
+                    type="button"
+                    aria-label="Mở menu"
+                >
+                    <i class="bi bi-list"></i>
+                </button>
+
+                <nav
+                    class="breadcrumb"
+                    aria-label="Breadcrumb"
+                >
+
+                    <span>Trang chủ</span>
+
+                    <i class="bi bi-chevron-right"></i>
+
+                    <span class="current">
+                        {% block breadcrumb %}
+                        Tổng quan
+                        {% endblock %}
+                    </span>
+
+                </nav>
+
+            </div>
+
+
+            <!-- ================= USER ================= -->
+
+            <div class="user-menu">
+
+                <div class="user-trigger">
+
+                    <button
+                        type="button"
+                        class="action-btn"
+                        aria-label="Thông báo"
+                    >
+                        <i class="bi bi-bell"></i>
+                    </button>
+
+
+                    <div class="user-avatar">
+                        {{
+                            (
+                                current_user.full_name[:1]
+                                if current_user
+                                and current_user.full_name
+                                else
+                                (
+                                    current_user.username[:1]
+                                    if current_user
+                                    else
+                                    'U'
+                                )
+                            ).upper()
+                        }}
+                    </div>
+
+
+                    <div class="user-meta">
+
+                        <strong>
+                            {{
+                                current_user.full_name
+                                if current_user
+                                and current_user.full_name
+                                else
+                                (
+                                    current_user.username
+                                    if current_user
+                                    else
+                                    'Khách'
+                                )
+                            }}
+                        </strong>
+
+                        <span>
+                            {{
+                                current_user.display_role
+                                if current_user
+                                else
+                                'Khách'
+                            }}
+                        </span>
+
+                    </div>
+
+                    <i class="bi bi-chevron-down"></i>
+
+                </div>
+
+
+                <!-- DROPDOWN -->
+
+                <div class="dropdown-menu">
+
+                    <a href="{{ url_for('auth.profile') }}">
+                        <i class="bi bi-person"></i>
+                        Hồ sơ
+                    </a>
+
+                    <a href="{{ url_for('auth.change_password') }}">
+                        <i class="bi bi-key"></i>
+                        Đổi mật khẩu
+                    </a>
+
+                    {% if current_user and current_user.is_admin %}
+                    <a href="{{ url_for('auth.settings') }}">
+                        <i class="bi bi-gear"></i>
+                        Cài đặt tài khoản
+                    </a>
+                    {% endif %}
+
+                    <a href="{{ url_for('auth.logout') }}">
+                        <i class="bi bi-box-arrow-right"></i>
+                        Đăng xuất
+                    </a>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- ==================================================
+             PAGE CONTENT
+             ================================================== -->
+
+        <main class="page-content">
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+
+                {% if messages %}
+
+                    <div class="toast-stack">
+
+                        {% for category, message in messages %}
+
+                            <div class="toast
+                                {% if category == 'error' %}
+                                    error
+                                {% else %}
+                                    success
+                                {% endif %}"
+                            >
+                                {{ message }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+            {% endwith %}
+
+
+            {% block content %}
+            {% endblock %}
+
+        </main>
+
+    </div>
+
+</div>
+
+{% else %}
+
+<!-- LOGIN -->
+
+{% block login_content %}
+{% endblock %}
+
+{% endif %}
+
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+</body>
+</html>

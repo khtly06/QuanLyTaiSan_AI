@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Phòng ban{% endblock %}
+{% block breadcrumb %}Phòng ban{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-heading"><i class="bi bi-diagram-3"></i><div><h1>Phòng ban</h1><p class="page-description">Quản lý đơn vị phụ trách và phạm vi sử dụng tài sản.</p></div></div>
+    <div class="header-actions"><a class="btn btn-primary" href="#department-form"><i class="bi bi-plus-lg"></i> Thêm phòng ban</a></div>
+</div>
+{% if error %}<div class="alert-box error">{{ error }}</div>{% endif %}
+<div class="card form-panel" id="department-form">
+    <div class="card-header"><div><h3>Thêm phòng ban</h3><p>Mã phòng ban giúp phân loại và điều chuyển tài sản chính xác.</p></div><i class="bi bi-building-add"></i></div>
+    <form method="post" action="/departments" data-confirm="Bạn có muốn lưu phòng ban này không?">
+        <div class="form-grid">
+            <div class="form-field"><label>Tên phòng ban</label><input name="name" placeholder="Ví dụ: Phòng Kế toán" required></div>
+            <div class="form-field"><label>Mã phòng ban</label><input name="code" placeholder="Ví dụ: KT" required></div>
+            <div class="form-field"><label>Mô tả</label><input name="description" placeholder="Thông tin phụ trách"></div>
+        </div>
+        <div class="header-actions" style="margin-top: 18px;"><button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i> Lưu phòng ban</button></div>
+    </form>
+</div>
+<div class="card table-card">
+    <div class="card-header"><div><h3>Danh sách phòng ban</h3><p>Các đơn vị đang được sử dụng trong hệ thống.</p></div><span class="record-count">{{ departments|length }} bản ghi</span></div>
+    <div class="table-wrap">
+        <table><thead><tr><th>Mã</th><th>Tên phòng ban</th><th>Mã đơn vị</th><th>Mô tả</th><th>Trạng thái</th></tr></thead>
+            <tbody>
+            {% for department in departments %}<tr><td>#{{ '%03d'|format(department.id) }}</td><td><strong>{{ department.name }}</strong></td><td><span class="badge status-info">{{ department.code }}</span></td><td>{{ department.description or 'Chưa có mô tả' }}</td><td><span class="badge status-active">Đang hoạt động</span></td></tr>
+            {% else %}<tr><td colspan="5"><div class="empty-state"><i class="bi bi-diagram-3"></i><br>Chưa có phòng ban nào.</div></td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="list-pager"><span>Hiển thị toàn bộ phòng ban</span><span><i class="bi bi-database"></i> Dữ liệu trực tiếp</span></div>
+</div>
+{% endblock %}

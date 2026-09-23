@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Hồ sơ cá nhân{% endblock %}
+{% block breadcrumb %}Hồ sơ cá nhân{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Hồ sơ cá nhân</h1>
+    <div class="header-actions">
+        <a class="btn btn-secondary" href="{{ url_for('auth.change_password') }}">Đổi mật khẩu</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="profile-header">
+        <div class="profile-avatar">{{ user.full_name[0].upper() if user.full_name else user.username[0].upper() }}</div>
+        <div>
+            <h2 class="profile-name">{{ user.full_name or user.username }}</h2>
+            <div class="profile-role">{{ user.display_role }} · {{ user.username }}</div>
+        </div>
+    </div>
+
+    <div class="meta-grid">
+        <div class="meta-item">
+            <span>Họ tên</span>
+            <strong>{{ user.full_name or '—' }}</strong>
+        </div>
+        <div class="meta-item">
+            <span>Email</span>
+            <strong>{{ user.email }}</strong>
+        </div>
+        <div class="meta-item">
+            <span>Tài khoản</span>
+            <strong>{{ user.username }}</strong>
+        </div>
+        <div class="meta-item">
+            <span>Vai trò</span>
+            <strong>{{ user.display_role }}</strong>
+        </div>
+    </div>
+</div>
+{% endblock %}

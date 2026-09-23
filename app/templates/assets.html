@@ -1,0 +1,293 @@
+{% extends 'base.html' %}
+{% block title %}Tài sản | Smart Asset Management{% endblock %}
+{% block breadcrumb %}Quản lý tài sản{% endblock %}
+{% block content %}
+
+<section class="page-header assets-page-header">
+    <div class="page-heading">
+        <div class="page-heading-icon"><i class="bi bi-box-seam"></i></div>
+        <div>
+            <h1>Quản lý tài sản</h1>
+            <p class="page-description">Theo dõi, cập nhật và quản lý toàn bộ tài sản theo dữ liệu thời gian thực.</p>
+        </div>
+    </div>
+    <div class="header-actions">
+        <a class="btn btn-outline" href="{{ url_for('dashboard.dashboard') }}">
+            <i class="bi bi-grid-1x2"></i> Dashboard
+        </a>
+        <a class="btn btn-primary" href="#asset-form">
+            <i class="bi bi-plus-lg"></i> Thêm tài sản
+        </a>
+    </div>
+</section>
+
+<div class="stat-grid compact">
+    <div class="card metric-card mini-metric">
+        <div class="mini-metric-icon"><i class="bi bi-boxes"></i></div>
+        <div><span class="metric-label">Tổng tài sản</span><strong>{{ total_assets }}</strong></div>
+    </div>
+    <div class="card metric-card mini-metric">
+        <div class="mini-metric-icon success"><i class="bi bi-check2-circle"></i></div>
+        <div><span class="metric-label">Đang sử dụng</span><strong>{{ active_assets }}</strong></div>
+    </div>
+    <div class="card metric-card mini-metric">
+        <div class="mini-metric-icon warning"><i class="bi bi-wrench-adjustable"></i></div>
+        <div><span class="metric-label">Đang sửa chữa</span><strong>{{ repair_assets }}</strong></div>
+    </div>
+    <div class="card metric-card mini-metric">
+        <div class="mini-metric-icon danger"><i class="bi bi-trash3"></i></div>
+        <div><span class="metric-label">Thanh lý</span><strong>{{ disposal_assets }}</strong></div>
+    </div>
+    <div class="card metric-card mini-metric">
+        <div class="mini-metric-icon info"><i class="bi bi-cash-stack"></i></div>
+        <div><span class="metric-label">Tổng giá trị</span><strong>{{ "{:,.0f}".format(total_value) }} ₫</strong></div>
+    </div>
+</div>
+
+<section class="card form-panel asset-form-card" id="asset-form">
+    <div class="card-header">
+        <div>
+            <h2><i class="bi bi-plus-circle"></i> Thêm tài sản mới</h2>
+            <p>Nhập thông tin và lưu trực tiếp vào cơ sở dữ liệu.</p>
+        </div>
+        <span class="form-required"><i class="bi bi-asterisk"></i> Trường bắt buộc</span>
+    </div>
+    <form method="post" action="{{ url_for('assets.list_assets') }}">
+        <div class="form-grid">
+            <div class="form-field">
+                <label for="asset_code">Mã tài sản <span>*</span></label>
+                <input id="asset_code" name="asset_code" placeholder="VD: TS-004" required>
+            </div>
+            <div class="form-field">
+                <label for="name">Tên tài sản <span>*</span></label>
+                <input id="name" name="name" placeholder="VD: Laptop Dell Latitude" required>
+            </div>
+            <div class="form-field">
+                <label for="category_id">Danh mục <span>*</span></label>
+                <select id="category_id" name="category_id" required>
+                    <option value="">Chọn danh mục</option>
+                    {% for category in categories %}<option value="{{ category.id }}">{{ category.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="form-field">
+                <label for="department_id">Phòng ban <span>*</span></label>
+                <select id="department_id" name="department_id" required>
+                    <option value="">Chọn phòng ban</option>
+                    {% for department in departments %}<option value="{{ department.id }}">{{ department.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="form-field">
+                <label for="user_name">Người sử dụng</label>
+                <input id="user_name" name="user_name" placeholder="Họ và tên người sử dụng">
+            </div>
+            <div class="form-field">
+                <label for="purchase_date">Ngày mua</label>
+                <input id="purchase_date" type="date" name="purchase_date">
+            </div>
+            <div class="form-field">
+                <label for="value">Giá trị (VNĐ)</label>
+                <input id="value" type="number" min="0" step="1000" name="value" value="0">
+            </div>
+            <div class="form-field">
+                <label for="status">Trạng thái</label>
+                <select id="status" name="status">
+                    {% for value, label in status_options %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="form-field">
+                <label for="location">Vị trí</label>
+                <input id="location" name="location" placeholder="VD: Phòng máy 2">
+            </div>
+            <div class="form-field full">
+                <label for="notes">Ghi chú</label>
+                <textarea id="notes" name="notes" placeholder="Thông tin bổ sung về tài sản..."></textarea>
+            </div>
+        </div>
+        <div class="form-actions">
+            <button class="btn btn-primary" type="submit" data-loading-target>
+                <i class="bi bi-check2-circle"></i> Lưu tài sản
+            </button>
+            <button class="btn btn-outline" type="reset"><i class="bi bi-arrow-counterclockwise"></i> Nhập lại</button>
+        </div>
+    </form>
+</section>
+
+<section class="card table-card asset-list-card" id="asset-list">
+    <div class="card-header list-header">
+        <div>
+            <h2>Danh sách tài sản</h2>
+            <p>{{ assets|length }} kết quả{% if request.args.get('q') or request.args.get('category_id') or request.args.get('department_id') or request.args.get('status') %} theo bộ lọc hiện tại{% endif %}.</p>
+        </div>
+        <span class="live-indicator"><span></span> Dữ liệu trực tiếp</span>
+    </div>
+
+    <div class="filter-bar">
+        <form method="get" class="filter-form">
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input name="q" placeholder="Tìm mã, tên hoặc người sử dụng..." value="{{ request.args.get('q', '') }}">
+            </div>
+            <select name="category_id">
+                <option value="">Tất cả danh mục</option>
+                {% for category in categories %}<option value="{{ category.id }}" {% if request.args.get('category_id') == category.id|string %}selected{% endif %}>{{ category.name }}</option>{% endfor %}
+            </select>
+            <select name="department_id">
+                <option value="">Tất cả phòng ban</option>
+                {% for department in departments %}<option value="{{ department.id }}" {% if request.args.get('department_id') == department.id|string %}selected{% endif %}>{{ department.name }}</option>{% endfor %}
+            </select>
+            <select name="status">
+                <option value="">Tất cả trạng thái</option>
+                {% for value, label in status_options %}<option value="{{ value }}" {% if request.args.get('status') == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select>
+            <button class="btn btn-primary" type="submit"><i class="bi bi-funnel"></i> Lọc</button>
+            {% if request.args.get('q') or request.args.get('category_id') or request.args.get('department_id') or request.args.get('status') %}
+            <a class="btn btn-outline" href="{{ url_for('assets.list_assets') }}"><i class="bi bi-x-lg"></i> Xóa lọc</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <div class="table-wrap">
+        <table class="professional-table">
+            <thead>
+                <tr>
+                    <th>Tài sản</th>
+                    <th>Phân loại</th>
+                    <th>Phụ trách</th>
+                    <th>Giá trị</th>
+                    <th>Trạng thái</th>
+                    <th class="action-column">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for asset in assets %}
+                <tr id="asset-{{ asset.id }}">
+                    <td>
+                        <div class="asset-cell">
+                            <div class="asset-avatar"><i class="bi bi-box"></i></div>
+                            <div>
+                                <a class="asset-name" href="{{ url_for('assets.get_asset', asset_id=asset.id) }}">{{ asset.name }}</a>
+                                <span class="asset-code">{{ asset.asset_code }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="table-main">{{ asset.category.name if asset.category else '—' }}</span>
+                        <span class="table-sub">{{ asset.department.name if asset.department else 'Chưa phân phòng' }}</span>
+                    </td>
+                    <td>
+                        <span class="table-main">{{ asset.user_name or 'Chưa gán' }}</span>
+                        <span class="table-sub">{{ asset.location or 'Chưa cập nhật vị trí' }}</span>
+                    </td>
+                    <td><strong>{{ "{:,.0f}".format(asset.value or 0) }} ₫</strong></td>
+                    <td>
+                        {% set labels = {'active':'Đang sử dụng','repair':'Đang sửa chữa','disposal':'Thanh lý'} %}
+                        <span class="badge status-{{ asset.status }}"><span class="status-dot"></span>{{ labels.get(asset.status, asset.status) }}</span>
+                    </td>
+                    <td>
+                        <div class="row-actions">
+                            <a class="icon-btn" href="{{ url_for('assets.get_asset', asset_id=asset.id) }}" title="Xem chi tiết"><i class="bi bi-eye"></i></a>
+                            <button class="icon-btn edit-btn" type="button" title="Sửa tài sản"
+                                    data-edit-asset
+                                    data-id="{{ asset.id }}"
+                                    data-code="{{ asset.asset_code }}"
+                                    data-name="{{ asset.name }}"
+                                    data-category="{{ asset.category_id }}"
+                                    data-department="{{ asset.department_id }}"
+                                    data-user="{{ asset.user_name or '' }}"
+                                    data-purchase="{{ asset.purchase_date or '' }}"
+                                    data-value="{{ asset.value or 0 }}"
+                                    data-status="{{ asset.status }}"
+                                    data-location="{{ asset.location or '' }}"
+                                    data-notes="{{ asset.notes or '' }}">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                            <form method="post" action="{{ url_for('assets.delete_asset', asset_id=asset.id) }}" data-confirm="Bạn có chắc muốn xóa tài sản {{ asset.asset_code }}? Thao tác này không thể hoàn tác.">
+                                <button class="icon-btn danger" type="submit" title="Xóa tài sản"><i class="bi bi-trash3"></i></button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <div><i class="bi bi-inbox"></i></div>
+                            <strong>Chưa có tài sản phù hợp</strong>
+                            <span>Hãy thêm tài sản mới hoặc thay đổi bộ lọc tìm kiếm.</span>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<div class="modal" id="editAssetModal" aria-hidden="true">
+    <div class="modal-backdrop" data-close-modal></div>
+    <section class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="editAssetTitle">
+        <div class="modal-header">
+            <div>
+                <span class="modal-kicker">CẬP NHẬT DỮ LIỆU</span>
+                <h2 id="editAssetTitle">Sửa tài sản</h2>
+                <p>Thay đổi thông tin và lưu ngay vào hệ thống.</p>
+            </div>
+            <button class="modal-close" type="button" data-close-modal aria-label="Đóng"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form method="post" id="editAssetForm">
+            <div class="form-grid">
+                <div class="form-field">
+                    <label for="edit_asset_code">Mã tài sản <span>*</span></label>
+                    <input id="edit_asset_code" name="asset_code" required>
+                </div>
+                <div class="form-field">
+                    <label for="edit_name">Tên tài sản <span>*</span></label>
+                    <input id="edit_name" name="name" required>
+                </div>
+                <div class="form-field">
+                    <label for="edit_category_id">Danh mục <span>*</span></label>
+                    <select id="edit_category_id" name="category_id" required>
+                        {% for category in categories %}<option value="{{ category.id }}">{{ category.name }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label for="edit_department_id">Phòng ban <span>*</span></label>
+                    <select id="edit_department_id" name="department_id" required>
+                        {% for department in departments %}<option value="{{ department.id }}">{{ department.name }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label for="edit_user_name">Người sử dụng</label>
+                    <input id="edit_user_name" name="user_name">
+                </div>
+                <div class="form-field">
+                    <label for="edit_purchase_date">Ngày mua</label>
+                    <input id="edit_purchase_date" type="date" name="purchase_date">
+                </div>
+                <div class="form-field">
+                    <label for="edit_value">Giá trị (VNĐ)</label>
+                    <input id="edit_value" type="number" min="0" step="1000" name="value">
+                </div>
+                <div class="form-field">
+                    <label for="edit_status">Trạng thái</label>
+                    <select id="edit_status" name="status">
+                        {% for value, label in status_options %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="form-field full">
+                    <label for="edit_location">Vị trí</label>
+                    <input id="edit_location" name="location">
+                </div>
+                <div class="form-field full">
+                    <label for="edit_notes">Ghi chú</label>
+                    <textarea id="edit_notes" name="notes"></textarea>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-outline" type="button" data-close-modal>Hủy</button>
+                <button class="btn btn-primary" type="submit" data-loading-target><i class="bi bi-check2"></i> Lưu thay đổi</button>
+            </div>
+        </form>
+    </section>
+</div>
+{% endblock %}

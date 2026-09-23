@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Quản lý người dùng{% endblock %}
+{% block breadcrumb %}Người dùng{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-heading"><i class="bi bi-people"></i><div><h1>Người dùng</h1><p class="page-description">Kiểm soát tài khoản, vai trò và trạng thái truy cập hệ thống.</p></div></div>
+    <div class="header-actions">
+        <button class="btn btn-primary" type="button" disabled><i class="bi bi-person-plus"></i> Thêm người dùng</button>
+    </div>
+</div>
+
+<div class="card table-card">
+    <div class="card-header"><div><h3>Tài khoản hệ thống</h3><p>Chỉ quản trị viên mới có quyền truy cập danh sách này.</p></div><span class="record-count">{{ users|length }} tài khoản</span></div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Mã</th><th>Họ tên</th>
+                    <th>Tài khoản</th>
+                    <th>Email</th>
+                    <th>Vai trò</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in users %}
+                <tr>
+                    <td>#{{ '%03d'|format(item.id) }}</td><td><strong>{{ item.full_name or item.username }}</strong></td>
+                    <td>{{ item.username }}</td>
+                    <td>{{ item.email }}</td>
+                    <td><span class="badge {{ 'status-info' if item.role == 'admin' else 'status-active' }}">{{ item.display_role }}</span></td>
+                    <td><span class="badge {{ 'status-active' if item.is_active else 'status-closed' }}">{{ 'Hoạt động' if item.is_active else 'Khóa' }}</span></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6"><div class="empty-state"><i class="bi bi-people"></i><br>Chưa có tài khoản nào.</div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="list-pager"><span>Dữ liệu người dùng trực tiếp</span><span><i class="bi bi-shield-check"></i> Khu vực quản trị</span></div>
+</div>
+{% endblock %}
