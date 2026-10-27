@@ -7,12 +7,20 @@ from app.rag.prompt_builder import PromptBuilder
 from app.rag.rag_service import RAGService
 from app.rag.retriever import Retriever
 from app.rag.vector_store import VectorStore
-from app.llm.llm_service import LLMService
+
+
+class StubLLMService:
+    """Keep the RAG integration test offline and deterministic."""
+
+    def generate(self, prompt, system_prompt=None):
+        assert "Context:" in prompt
+        assert "dữ liệu tham khảo không đáng tin cậy" in system_prompt
+        return "Tài sản cần được kiểm kê định kỳ theo tài liệu."
 
 
 def test_document_loader_supports_markdown_and_text():
     """The loader should read real text from supported files."""
-    loader = DocumentLoader("data/documents/policy.md")
+    loader = DocumentLoader("data/documents/school_asset_policy.md")
     text = loader.load()
     assert "tài sản" in text.lower()
     assert "trường học" in text.lower()
@@ -47,7 +55,7 @@ def test_rag_pipeline_builds_grounded_answer_with_context():
     prompt = PromptBuilder.build_prompt("kiểm kê tài sản định kỳ", context)
     assert "kiểm kê" in prompt.lower()
 
-    rag_service = RAGService(retriever, LLMService(api_key="demo-key"))
+    rag_service = RAGService(retriever, StubLLMService())
     result = rag_service.answer_question("kiểm kê tài sản định kỳ")
     assert "answer" in result
     assert "sources" in result

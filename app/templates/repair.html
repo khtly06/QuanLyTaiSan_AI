@@ -10,6 +10,7 @@
 <div class="card form-panel" id="repair-form">
     <div class="card-header"><div><h3>Gửi yêu cầu sửa chữa</h3><p>Mô tả rõ vấn đề để bộ phận phụ trách xử lý nhanh hơn.</p></div><i class="bi bi-tools"></i></div>
     <form method="post" action="/repairs" data-confirm="Bạn có muốn gửi yêu cầu sửa chữa này không?">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-grid">
             <div class="form-field">
                 <label>Tài sản</label>
@@ -20,7 +21,6 @@
             </div>
             <div class="form-field"><label>Ngày yêu cầu</label><input type="date" name="request_date"></div>
             <div class="form-field"><label>Chi phí dự kiến</label><input type="number" step="0.01" name="cost" value="0"></div>
-            <div class="form-field"><label>Trạng thái</label><select name="status"><option value="pending">Chờ xử lý</option><option value="completed">Hoàn thành</option></select></div>
             <div class="form-field"><label>Mô tả sự cố</label><input name="description" placeholder="Mô tả tình trạng cần xử lý" required></div>
         </div>
         <div class="header-actions" style="margin-top: 18px;"><button class="btn btn-primary" type="submit"><i class="bi bi-send"></i> Gửi yêu cầu</button></div>
@@ -31,7 +31,18 @@
     <div class="table-wrap">
         <table><thead><tr><th>Mã</th><th>Tài sản</th><th>Mô tả</th><th>Chi phí</th><th>Trạng thái</th></tr></thead>
             <tbody>
-            {% for repair in repairs %}<tr><td>#{{ '%03d'|format(repair.id) }}</td><td><strong>{{ repair.asset.name if repair.asset else repair.asset_id }}</strong></td><td>{{ repair.description }}</td><td>{{ "{:,.0f}".format(repair.cost or 0) }} VNĐ</td><td><span class="badge status-{{ repair.status }} status-label">{{ 'Hoàn thành' if repair.status == 'completed' else 'Chờ xử lý' }}</span></td></tr>
+            {% for repair in repairs %}<tr><td>#{{ '%03d'|format(repair.id) }}</td><td><strong>{{ repair.asset.name if repair.asset else repair.asset_id }}</strong></td><td>{{ repair.description }}<br><small>Yêu cầu: {{ repair.requested_by or '—' }} · Cập nhật: {{ repair.updated_by or '—' }}</small></td><td>{{ "{:,.0f}".format(repair.cost or 0) }} VNĐ</td><td>
+              <span class="badge status-{{ repair.status }} status-label">{{ repair_statuses[repair.status] }}</span>
+              {% if repair.status in ['pending', 'in_progress'] %}
+              <form method="post" action="{{ url_for('repair.update_repair', repair_id=repair.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <select name="status" required>{% for value, label in repair_statuses.items() %}<option value="{{ value }}" {% if repair.status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+                <input type="date" name="repair_date" value="{{ repair.repair_date or '' }}" aria-label="Ngày sửa xong">
+                <input type="number" min="0" step="0.01" name="cost" value="{{ repair.cost or 0 }}" aria-label="Chi phí thực tế">
+                <button class="btn btn-primary" type="submit">Cập nhật</button>
+              </form>
+              {% endif %}
+            </td></tr>
             {% else %}<tr><td colspan="5"><div class="empty-state"><i class="bi bi-wrench"></i><br>Chưa có yêu cầu sửa chữa nào.</div></td></tr>{% endfor %}
             </tbody>
         </table>

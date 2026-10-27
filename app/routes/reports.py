@@ -29,7 +29,7 @@ def reports():
 
     repair_assets = Asset.query.filter_by(status="repair").count()
 
-    disposed_assets = Asset.query.filter_by(status="disposed").count()
+    disposed_assets = Asset.query.filter_by(status="disposal").count()
 
     total_value = (
         db.session.query(

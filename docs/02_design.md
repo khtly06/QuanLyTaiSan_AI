@@ -1,61 +1,24 @@
-# 02 Design - Hệ thống quản lý tài sản trường học có tích hợp AI
+# Thiết kế hệ thống
 
-## 1. Kiến trúc tổng thể
-Client/Frontend -> Backend/API -> Database
-                         |
-                         v
-                      AI Service
+Thiết kế phải bám sát Flask/SQLAlchemy hiện tại; không phải thiết kế Django. Chi tiết kiến trúc và ERD nằm tại [ARCHITECTURE.md](./ARCHITECTURE.md), Use Case tại [USE_CASE.md](./USE_CASE.md).
 
-## 2. Các thực thể chính
-- User
-- Role
-- Department
-- Location
-- AssetGroup
-- Asset
-- AssetTransfer
-- InventoryCampaign
-- InventoryDetail
-- MaintenanceRequest
-- DisposalRequest
-- AIReport
+## Các thực thể đang triển khai
 
-## 3. Quan hệ chính
-- Department 1-N Location
-- AssetGroup 1-N Asset
-- Location 1-N Asset
-- Asset 1-N AssetTransfer
-- InventoryCampaign 1-N InventoryDetail
-- Asset 1-N InventoryDetail
-- Asset 1-N MaintenanceRequest
-- Asset 1-N DisposalRequest
+`User`, `Category`, `Department`, `Asset`, `Inventory`, `InventoryDetail`, `Transfer`, `Repair`, `Disposal`.
 
-## 4. Use case chính
-- Đăng nhập
-- Quản lý tài sản
-- Điều chuyển
-- Kiểm kê
-- Sửa chữa
-- Thanh lý
-- Thống kê
-- Sinh báo cáo AI
+## Quan hệ hiện có
 
-## 5. Prompt AI
-System:
-Bạn là trợ lý quản lý tài sản trường học. Chỉ nhận xét dựa trên dữ liệu được cung cấp. Không tự tạo số liệu hoặc tài sản không tồn tại.
+- Category 1-N Asset; Department 1-N Asset.
+- Asset 1-N Transfer/Repair/Disposal/InventoryDetail.
+- Inventory 1-N InventoryDetail.
+- Department 1-N Transfer ở vai trò nguồn và đích.
 
-User:
-Dữ liệu kiểm kê: {{asset_inventory}}
-Hãy trả về:
-1. Tóm tắt số liệu.
-2. Danh sách tài sản thiếu.
-3. Danh sách tài sản hỏng.
-4. Danh sách cần sửa chữa.
-5. Đề xuất xử lý.
+Location hiện là chuỗi trên Asset; chưa có Role/Location/AuditLog/AIReport entity riêng. `database/schema.sql` không phải migration được quản lý/versioned.
 
-## 6. Output format AI
-JSON hoặc Markdown có cấu trúc rõ ràng.
-Kết quả phải có nhãn: "sinh bởi AI - tham khảo".
+## Kiến trúc/AI
 
-STATUS: PASS
-NEXT_PROMPT: prompts/03_implementation_plan.md
+Browser → Flask routes → SQLAlchemy/DB. RAG đọc tài liệu trong `data/documents`; LLM server-side qua endpoint Chat Completions tương thích OpenAI khi key được cấu hình. Dữ liệu báo cáo được truy vấn từ DB trước khi tạo prompt; JSON do LLM trả về được parse/kiểm tra key bắt buộc.
+
+## Giới hạn
+
+Chưa hoàn tất inventory details, quy trình trạng thái repair/disposal, RBAC/CSRF đầy đủ, phân quyền tóm tắt theo department, report theo inventory campaign, migration versioned và test live provider. Xem [GAP_ANALYSIS.md](./GAP_ANALYSIS.md).

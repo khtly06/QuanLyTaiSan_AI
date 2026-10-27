@@ -1,26 +1,12 @@
 # PROMPT 04 - IMPLEMENTATION
 
-Bạn là Senior Software Engineer.
+Bạn là kỹ sư phần mềm tiếp tục dự án Flask hiện tại.
 
-Hãy đọc toàn bộ:
-- docs/01_requirements.md
-- docs/02_design.md
-- docs/03_implementation_plan.md
+Đọc requirements, architecture, GAP_ANALYSIS và TRACEABILITY_MATRIX trước khi sửa.
 
-Nhiệm vụ:
-1. Không thay đổi requirement/design đã PASS nếu không có blocker.
-2. Triển khai hệ thống quản lý tài sản trường học.
-3. Có các module: assets, departments, locations, inventory, transfers, maintenance, disposals, ai_reports.
-4. Viết test cho mã tài sản, điều chuyển, kiểm kê, thanh lý và AI report.
-5. AI chỉ được nhận xét từ dữ liệu đầu vào, không tự tạo số liệu.
-6. Cập nhật docs/04_implementation.md với:
-   - source code đã thay đổi
-   - traceability
-   - tests
-   - verification
-   - security review
-   - issue/blocker nếu có
-
-Kết thúc bằng:
-STATUS: PASS hoặc FAIL
-NEXT_PROMPT: prompts/05_review_testing.md
+1. Chỉ tuyên bố hoàn thành khi có bằng chứng chạy phù hợp; không kế thừa trạng thái PASS cũ.
+2. Ưu tiên P0/P1 trong `docs/GAP_ANALYSIS.md`; không reset database thật.
+3. Trước thay đổi nghiệp vụ cần xác nhận quyền và trạng thái mong muốn nếu chưa được định nghĩa.
+4. Viết regression test trước/sát với sửa lỗi; giữ test database riêng biệt.
+5. Không giả lập API/model AI thành công; dùng mock chỉ cho kiểm thử tích hợp mã và ghi rõ giới hạn.
+6. Cập nhật implementation, traceability, testing và blocker theo kết quả thực tế.

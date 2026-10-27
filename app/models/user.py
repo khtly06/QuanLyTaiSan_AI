@@ -28,4 +28,9 @@ class User(db.Model):
     @property
     def display_role(self):
         """Return the role label for the UI."""
-        return "Quản trị viên" if self.role == "admin" else "Nhân viên"
+        return {
+            "admin": "Quản trị viên",
+            "manager": "Quản lý tài sản",
+            "inspector": "Kiểm kê viên",
+            "staff": "Nhân viên",
+        }.get(self.role, "Nhân viên")

@@ -33,7 +33,18 @@ const questionInput = document.getElementById('question');
 function appendMessage(role, text, sources = []) {
   const wrapper = document.createElement('div');
   wrapper.className = 'message ' + role;
-  wrapper.innerHTML = '<div>' + text.replace(/\n/g, '<br>') + '</div>' + (sources.length ? '<div class="source-list"><strong>Nguồn:</strong> ' + sources.join(', ') + '</div>' : '');
+  const message = document.createElement('div');
+  message.textContent = text;
+  wrapper.appendChild(message);
+  if (sources.length) {
+    const sourceList = document.createElement('div');
+    sourceList.className = 'source-list';
+    const label = document.createElement('strong');
+    label.textContent = 'Nguồn: ';
+    sourceList.appendChild(label);
+    sourceList.appendChild(document.createTextNode(sources.join(', ')));
+    wrapper.appendChild(sourceList);
+  }
   chatLog.appendChild(wrapper);
   chatLog.scrollTop = chatLog.scrollHeight;
 }
@@ -56,7 +67,10 @@ chatForm.addEventListener('submit', async function (event) {
   try {
     const response = await fetch('/ai/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+      },
       body: JSON.stringify({ question })
     });
     const data = await response.json();

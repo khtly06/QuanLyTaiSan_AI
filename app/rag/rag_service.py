@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from app.rag.prompt_builder import PromptBuilder
 
 
@@ -19,7 +21,11 @@ class RAGService:
 
         context = self.retriever.retrieve(question, top_k=4)
         prompt = PromptBuilder.build_prompt(question, context)
-        answer = self.llm_service.generate(prompt)
+        system_prompt_path = (
+            Path(__file__).resolve().parents[2] / "prompts" / "rag_system.md"
+        )
+        system_prompt = system_prompt_path.read_text(encoding="utf-8")
+        answer = self.llm_service.generate(prompt, system_prompt=system_prompt)
         return {
             "answer": answer,
             "sources": [

@@ -3,6 +3,7 @@
 from app.models import db
 
 
+
 class Disposal(db.Model):
     """Asset disposal record."""
 
@@ -14,6 +15,9 @@ class Disposal(db.Model):
     reason = db.Column(db.Text, nullable=False)
     liquidation_value = db.Column(db.Float, default=0.0)
     status = db.Column(db.String(50), default="requested")
+    requested_by = db.Column(db.String(120), nullable=True)
+    decided_by = db.Column(db.String(120), nullable=True)
+    decided_at = db.Column(db.DateTime, nullable=True)
 
     asset = db.relationship("Asset", back_populates="disposals")
 

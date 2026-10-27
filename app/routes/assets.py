@@ -1,7 +1,9 @@
 """Asset routes with live CRUD operations."""
 
 from datetime import datetime
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+import math
+
+from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from sqlalchemy.exc import IntegrityError
 
 from app.models import Asset, Category, Department, db
@@ -47,12 +49,26 @@ def _validate_asset_form(form, asset=None):
 
     if value < 0:
         return "Giá trị tài sản không được âm."
-    if not Category.query.get(category_id) or not Department.query.get(department_id):
+    if not math.isfinite(value):
+        return "Giá trị tài sản không hợp lệ."
+    purchase_date = form.get("purchase_date")
+    if purchase_date:
+        try:
+            datetime.strptime(purchase_date, "%Y-%m-%d")
+        except ValueError:
+            return "Ngày mua không hợp lệ."
+    if not db.session.get(Category, category_id) or not db.session.get(
+        Department, department_id
+    ):
         return "Danh mục hoặc phòng ban không tồn tại."
 
     status = form.get("status") or "active"
     if status not in dict(STATUS_OPTIONS):
         return "Trạng thái tài sản không hợp lệ."
+    if asset is None and status != "active":
+        return "Tài sản mới phải được tạo ở trạng thái đang sử dụng."
+    if asset is not None and status != asset.status:
+        return "Chỉ quy trình sửa chữa hoặc thanh lý mới được thay đổi trạng thái tài sản."
 
     return None
 
@@ -112,10 +128,23 @@ def list_assets():
             | (Asset.user_name.ilike(f"%{query}%"))
         )
     if category_filter:
-        items = items.filter_by(category_id=int(category_filter))
+        try:
+            category_filter = int(category_filter)
+        except ValueError:
+            flash("Bộ lọc danh mục không hợp lệ.", "error")
+            return redirect(url_for("assets.list_assets"))
+        items = items.filter_by(category_id=category_filter)
     if department_filter:
-        items = items.filter_by(department_id=int(department_filter))
+        try:
+            department_filter = int(department_filter)
+        except ValueError:
+            flash("Bộ lọc phòng ban không hợp lệ.", "error")
+            return redirect(url_for("assets.list_assets"))
+        items = items.filter_by(department_id=department_filter)
     if status_filter:
+        if status_filter not in dict(STATUS_OPTIONS):
+            flash("Bộ lọc trạng thái không hợp lệ.", "error")
+            return redirect(url_for("assets.list_assets"))
         items = items.filter_by(status=status_filter)
 
     items = items.order_by(Asset.id.desc()).all()
@@ -136,7 +165,9 @@ def list_assets():
 @login_required
 def get_asset(asset_id):
     """Display asset detail page."""
-    asset = Asset.query.get_or_404(asset_id)
+    asset = db.session.get(Asset, asset_id)
+    if asset is None:
+        abort(404)
     return render_template("asset_detail.html", asset=asset)
 
 
@@ -144,7 +175,9 @@ def get_asset(asset_id):
 @login_required
 def update_asset(asset_id):
     """Update an existing asset record."""
-    asset = Asset.query.get_or_404(asset_id)
+    asset = db.session.get(Asset, asset_id)
+    if asset is None:
+        abort(404)
     error = _validate_asset_form(request.form, asset)
     if error:
         flash(error, "error")
@@ -166,7 +199,9 @@ def update_asset(asset_id):
 @login_required
 def delete_asset(asset_id):
     """Delete an asset record when it is not referenced by a transaction."""
-    asset = Asset.query.get_or_404(asset_id)
+    asset = db.session.get(Asset, asset_id)
+    if asset is None:
+        abort(404)
     asset_code = asset.asset_code
     db.session.delete(asset)
     try:

@@ -17,7 +17,16 @@
                 <option value="repair">Sửa chữa</option>
                 <option value="disposal">Thanh lý</option>
                 <option value="inventory">Kiểm kê</option>
+                <option value="recommendations">Gợi ý sửa chữa / thay thế</option>
             </select>
+        </div>
+        <div class="form-field" id="department-field" hidden>
+          <label for="report-department">Phòng ban</label>
+          <select id="report-department"><option value="">-- Chọn phòng ban --</option>{% for department in departments %}<option value="{{ department.id }}">{{ department.name }}</option>{% endfor %}</select>
+        </div>
+        <div class="form-field" id="inventory-field" hidden>
+          <label for="report-inventory">Đợt kiểm kê</label>
+          <select id="report-inventory"><option value="">-- Chọn đợt kiểm kê --</option>{% for item in inventory_rounds %}<option value="{{ item.id }}">{{ item.name }} · #{{ item.id }}</option>{% endfor %}</select>
         </div>
         <div class="form-field">
           <label>&nbsp;</label><button class="btn btn-primary" id="generate-report"><i class="bi bi-magic"></i> Tạo báo cáo</button>
@@ -49,6 +58,17 @@ const generateButton = document.getElementById('generate-report');
 const statGrid = document.getElementById('report-stat-grid');
 const statsDetail = document.getElementById('stats-detail');
 const reportStatus = document.getElementById('report-status');
+const departmentField = document.getElementById('department-field');
+const departmentSelect = document.getElementById('report-department');
+const inventoryField = document.getElementById('inventory-field');
+const inventorySelect = document.getElementById('report-inventory');
+
+function updateReportInputs() {
+  departmentField.style.display = ['department', 'recommendations'].includes(typeSelect.value) ? '' : 'none';
+  inventoryField.style.display = typeSelect.value === 'inventory' ? '' : 'none';
+}
+typeSelect.addEventListener('change', updateReportInputs);
+updateReportInputs();
 
 function renderStats(stats) {
   const entries = [];
@@ -58,7 +78,17 @@ function renderStats(stats) {
   if (stats.disposal_assets !== undefined) entries.push(['Đang thanh lý', stats.disposal_assets]);
   if (stats.total_value !== undefined) entries.push(['Tổng giá trị', Number(stats.total_value).toLocaleString('vi-VN') + ' VNĐ']);
   if (!entries.length) entries.push(['Số nhóm dữ liệu', Object.keys(stats).length]);
-  statGrid.innerHTML = entries.map(([label, value]) => '<div class="report-stat"><span>' + label + '</span><strong>' + value + '</strong></div>').join('');
+  statGrid.replaceChildren();
+  entries.forEach(([label, value]) => {
+    const card = document.createElement('div');
+    card.className = 'report-stat';
+    const title = document.createElement('span');
+    title.textContent = label;
+    const metric = document.createElement('strong');
+    metric.textContent = value;
+    card.append(title, metric);
+    statGrid.appendChild(card);
+  });
 }
 
 generateButton.addEventListener('click', async function () {
@@ -67,11 +97,17 @@ generateButton.addEventListener('click', async function () {
   generateButton.classList.add('is-loading');
   reportStatus.textContent = 'Đang tạo';
   aiAnalysis.textContent = 'Đang phân tích dữ liệu thực tế...';
+  const payload = { report_type: reportType };
+  if (['department', 'recommendations'].includes(reportType)) payload.department_id = departmentSelect.value;
+  if (reportType === 'inventory') payload.inventory_id = inventorySelect.value;
   try {
     const response = await fetch('/ai/report', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ report_type: reportType })
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+      },
+      body: JSON.stringify(payload)
     });
     const data = await response.json();
     if (!response.ok) {

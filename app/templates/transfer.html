@@ -10,6 +10,7 @@
 <div class="card form-panel" id="transfer-form">
     <div class="card-header"><div><h3>Ghi nhận điều chuyển</h3><p>Kiểm tra kỹ đơn vị nguồn và đích trước khi lưu.</p></div><i class="bi bi-sign-turn-right"></i></div>
     <form method="post" action="/transfers" data-confirm="Bạn có muốn ghi nhận lần điều chuyển này không?">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-grid">
             <div class="form-field">
                 <label>Tài sản</label>
@@ -44,7 +45,7 @@
     <div class="table-wrap">
         <table><thead><tr><th>Mã</th><th>Tài sản</th><th>Đơn vị nguồn</th><th>Đơn vị đích</th><th>Ngày</th><th>Trạng thái</th></tr></thead>
             <tbody>
-            {% for transfer in transfers %}<tr><td>#{{ '%03d'|format(transfer.id) }}</td><td><strong>{{ transfer.asset.name if transfer.asset else transfer.asset_id }}</strong></td><td>{{ transfer.from_department.name if transfer.from_department else 'Chưa xác định' }}</td><td>{{ transfer.to_department.name if transfer.to_department else 'Chưa xác định' }}</td><td>{{ transfer.transfer_date or 'Chưa xác định' }}</td><td><span class="badge status-active">Đã ghi nhận</span></td></tr>
+            {% for transfer in transfers %}<tr><td>#{{ '%03d'|format(transfer.id) }}</td><td><strong>{{ transfer.asset.name if transfer.asset else transfer.asset_id }}</strong></td><td>{{ transfer.from_department.name if transfer.from_department else 'Chưa xác định' }}</td><td>{{ transfer.to_department.name if transfer.to_department else 'Chưa xác định' }}</td><td>{{ transfer.transfer_date or 'Chưa xác định' }}<br><small>{{ transfer.performed_by or '—' }}</small></td><td><span class="badge status-active">Đã ghi nhận</span></td></tr>
             {% else %}<tr><td colspan="6"><div class="empty-state"><i class="bi bi-arrow-left-right"></i><br>Chưa có lịch sử điều chuyển.</div></td></tr>{% endfor %}
             </tbody>
         </table>

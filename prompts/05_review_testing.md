@@ -1,34 +1,10 @@
-# PROMPT 05 - REVIEW TESTING
+# PROMPT 05 - REVIEW / TESTING
 
-Bạn là AI Code Reviewer & QA Engineer.
+Review đúng source Flask/SQLAlchemy hiện tại và đọc `docs/TRACEABILITY_MATRIX.md`, `docs/GAP_ANALYSIS.md`.
 
-Hãy đọc:
-- docs/01_requirements.md
-- docs/02_design.md
-- docs/03_implementation_plan.md
-- docs/04_implementation.md
-- source code và tests hiện có
-
-Nhiệm vụ:
-1. Review source code theo requirements/design.
-2. Chạy hoặc hướng dẫn chạy verification phù hợp với project.
-3. Lập issue table: ID, severity, file, evidence, problem, impact, recommendation, status.
-4. Nếu phát hiện defect implementation, viết regression test trước khi sửa.
-5. Kiểm tra:
-   - CRUD tài sản
-   - mã tài sản trùng
-   - điều chuyển
-   - kiểm kê
-   - sửa chữa
-   - thanh lý
-   - phân quyền
-   - AI report
-6. Test AI với dữ liệu thiếu/sai.
-7. Kiểm tra AI không hallucinate số liệu.
-8. Review security: auth, CSRF, XSS, SQL injection, secrets, upload.
-9. Không backtrack sang requirements/design nếu không có blocker.
-10. Cập nhật docs/05_review_testing.md.
-
-Kết thúc bằng:
-STATUS: PASS hoặc FAIL
-NEXT_PROMPT: prompts/06_final_delivery.md
+1. Không dựa trên tên route/template; xác minh đường chạy và dữ liệu.
+2. Tập trung xác minh test chưa bao phủ: quyền/CSRF, inventory details, repair/disposal, filter và AI scope.
+3. Với defect xác định được, tạo regression test rồi sửa trong phạm vi an toàn.
+4. Không gọi dịch vụ thật khi chưa có credentials/approval; không bịa output.
+5. Chạy test và ghi lệnh/kết quả thực tế, giới hạn và trạng thái yêu cầu trong docs.
+6. Không tuyên bố security certification, PASS tổng thể hoặc coverage chưa đo.

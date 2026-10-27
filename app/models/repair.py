@@ -16,6 +16,8 @@ class Repair(db.Model):
     description = db.Column(db.Text, nullable=False)
     cost = db.Column(db.Float, default=0.0)
     notes = db.Column(db.Text, nullable=True)
+    requested_by = db.Column(db.String(120), nullable=True)
+    updated_by = db.Column(db.String(120), nullable=True)
 
     asset = db.relationship("Asset", back_populates="repairs")
 

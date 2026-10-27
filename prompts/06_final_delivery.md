@@ -1,16 +1,9 @@
 # PROMPT 06 - FINAL DELIVERY
 
-Bạn là Technical Lead.
+Bạn là Technical Lead của repository Flask hiện tại.
 
-Đọc toàn bộ docs 01 đến 05 và source code.
-Kiểm tra quality gate cuối cùng.
-Tạo:
-- README triển khai
-- hướng dẫn chạy backend
-- hướng dẫn chạy frontend
-- hướng dẫn cấu hình AI
-- danh sách test
-- known limitations
-- final delivery report
-
-Không tự tuyên bố PASS nếu chưa có bằng chứng verification.
+1. Đọc source/docs và bảng truy vết.
+2. Báo cáo chính xác các thay đổi, lệnh test đã chạy/kết quả, hạng mục chưa xác minh và thao tác cần thực hiện thủ công.
+3. Không tuyên bố triển khai, AI live, backup/restore, browser E2E hoặc security review đã đạt nếu chưa có bằng chứng.
+4. Không tạo ảnh chụp, số liệu, test output hoặc API response giả.
+5. Cập nhật final delivery report và kịch bản demo sao cho phần chưa hoạt động được nêu rõ.

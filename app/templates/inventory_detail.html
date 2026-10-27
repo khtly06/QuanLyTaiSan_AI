@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Kiểm kê #{{ campaign.id }}{% endblock %}
+{% block breadcrumb %}Chi tiết kiểm kê{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-heading"><i class="bi bi-clipboard-check"></i><div><h1>{{ campaign.name }}</h1><p class="page-description">Ghi nhận từng kết quả kiểm đếm thực tế; hệ thống không tự đánh dấu tài sản thiếu.</p></div></div>
+  <div class="header-actions"><a class="btn btn-outline" href="{{ url_for('inventory.list_inventory') }}">Quay lại</a></div>
+</div>
+<div class="stat-grid compact">
+  <div class="card metric-card"><span class="metric-label">Danh sách kỳ vọng</span><strong>{{ campaign.details|length }}</strong></div>
+  <div class="card metric-card"><span class="metric-label">Đã kiểm đếm</span><strong>{{ checked_count }}</strong></div>
+  <div class="card metric-card"><span class="metric-label">Được xác nhận thiếu</span><strong>{{ missing_count }}</strong></div>
+  <div class="card metric-card"><span class="metric-label">Ghi nhận ngoài danh sách</span><strong>{{ campaign.observations|length }}</strong></div>
+</div>
+<div class="card table-card">
+  <div class="card-header"><div><h3>Đối chiếu tài sản</h3><p>Trạng thái kỳ vọng được chụp khi tạo đợt; chỉ ghi nhận thiếu khi kiểm kê viên chọn rõ.</p></div><span class="badge status-{{ campaign.status }}">{{ 'Hoàn thành' if campaign.status == 'completed' else 'Đang thực hiện' }}</span></div>
+  <div class="table-wrap"><table><thead><tr><th>Mã / tài sản</th><th>Kỳ vọng</th><th>Thực tế</th><th>Ghi chú</th><th>Người / thời gian</th><th>Ghi nhận</th></tr></thead><tbody>
+  {% for detail in campaign.details %}
+  <tr>
+    <td><strong>{{ detail.asset.asset_code }}</strong><br>{{ detail.asset.name }}</td>
+    <td>{{ detail.expected_status }}</td>
+    <td>{% if detail.actual_status %}{{ actual_statuses[detail.actual_status] }}{% else %}Chưa kiểm đếm{% endif %}</td>
+    <td>{{ detail.variance_note or '—' }}</td>
+    <td>{{ detail.checked_by or '—' }}<br>{{ detail.checked_at or '' }}</td>
+    <td>{% if campaign.status == 'pending' %}
+      <form method="post" action="{{ url_for('inventory.inventory_detail', inventory_id=campaign.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="detail_id" value="{{ detail.id }}">
+        <select name="actual_status" aria-label="Tình trạng kiểm kê" required>{% for value, label in actual_statuses.items() %}<option value="{{ value }}" {% if detail.actual_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+        <input name="variance_note" placeholder="Ghi chú sai lệch" value="{{ detail.variance_note or '' }}">
+        <button class="btn btn-primary" type="submit">Lưu</button>
+      </form>
+    {% else %}Đã khóa{% endif %}</td>
+  </tr>
+  {% else %}<tr><td colspan="6">Không có tài sản trong danh sách kỳ vọng.</td></tr>{% endfor %}
+  </tbody></table></div>
+</div>
+{% if campaign.status == 'pending' %}
+<div class="card form-panel">
+  <div class="card-header"><div><h3>Ghi nhận tài sản ngoài danh sách</h3><p>Ghi nhận hiện vật tìm thấy nhưng không có trong danh sách tài sản.</p></div></div>
+  <form method="post" action="{{ url_for('inventory.add_observation', inventory_id=campaign.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-grid">
+      <div class="form-field"><label>Mã quan sát</label><input name="observed_code" required></div>
+      <div class="form-field"><label>Tên tài sản</label><input name="observed_name" required></div>
+      <div class="form-field"><label>Tình trạng</label><select name="actual_status" required>{% for value, label in actual_statuses.items() %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
+      <div class="form-field"><label>Ghi chú</label><input name="note"></div>
+    </div>
+    <button class="btn btn-primary" type="submit">Lưu ghi nhận</button>
+  </form>
+  <hr>
+  <h3>Hiện vật ngoài danh sách đã ghi nhận</h3>
+  {% for observation in campaign.observations %}<p><strong>{{ observation.observed_code }} — {{ observation.observed_name }}</strong>: {{ actual_statuses[observation.actual_status] }}; {{ observation.note or 'Không có ghi chú' }} ({{ observation.checked_by }}, {{ observation.checked_at }})</p>{% else %}<p>Chưa có ghi nhận.</p>{% endfor %}
+  <form method="post" action="{{ url_for('inventory.complete_inventory', inventory_id=campaign.id) }}" data-confirm="Hoàn tất sẽ khóa dữ liệu đợt kiểm kê. Tiếp tục?">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn btn-primary" type="submit">Hoàn tất và khóa đợt</button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}

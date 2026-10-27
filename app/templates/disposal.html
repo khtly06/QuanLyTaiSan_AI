@@ -10,6 +10,7 @@
 <div class="card form-panel" id="disposal-form">
     <div class="card-header"><div><h3>Ghi nhận thanh lý</h3><p>Hồ sơ sẽ được lưu để theo dõi và phê duyệt.</p></div><i class="bi bi-file-earmark-x"></i></div>
     <form method="post" action="/disposals" data-confirm="Bạn có muốn ghi nhận hồ sơ thanh lý này không?">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-grid">
             <div class="form-field">
                 <label>Tài sản</label>
@@ -20,7 +21,6 @@
             </div>
             <div class="form-field"><label>Ngày thanh lý</label><input type="date" name="disposal_date"></div>
             <div class="form-field"><label>Giá trị thanh lý</label><input type="number" step="0.01" name="liquidation_value" value="0"></div>
-            <div class="form-field"><label>Trạng thái</label><select name="status"><option value="requested">Yêu cầu</option><option value="approved">Đã duyệt</option></select></div>
             <div class="form-field"><label>Lý do thanh lý</label><input name="reason" placeholder="Ví dụ: Hết niên hạn sử dụng" required></div>
         </div>
         <div class="header-actions" style="margin-top: 18px;"><button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i> Lưu hồ sơ</button></div>
@@ -31,7 +31,15 @@
     <div class="table-wrap">
         <table><thead><tr><th>Mã</th><th>Tài sản</th><th>Lý do</th><th>Giá trị</th><th>Trạng thái</th></tr></thead>
             <tbody>
-            {% for disposal in disposals %}<tr><td>#{{ '%03d'|format(disposal.id) }}</td><td><strong>{{ disposal.asset.name if disposal.asset else disposal.asset_id }}</strong></td><td>{{ disposal.reason }}</td><td>{{ "{:,.0f}".format(disposal.liquidation_value or 0) }} VNĐ</td><td><span class="badge status-{{ disposal.status }} status-label">{{ 'Đã duyệt' if disposal.status == 'approved' else 'Yêu cầu' }}</span></td></tr>
+            {% for disposal in disposals %}<tr><td>#{{ '%03d'|format(disposal.id) }}</td><td><strong>{{ disposal.asset.name if disposal.asset else disposal.asset_id }}</strong></td><td>{{ disposal.reason }}<br><small>Đề nghị: {{ disposal.requested_by or '—' }} · Quyết định: {{ disposal.decided_by or '—' }}</small></td><td>{{ "{:,.0f}".format(disposal.liquidation_value or 0) }} VNĐ</td><td><span class="badge status-{{ disposal.status }} status-label">{{ {'requested':'Chờ duyệt','approved':'Đã duyệt','rejected':'Từ chối'}.get(disposal.status, disposal.status) }}</span>
+              {% if disposal.status == 'requested' and is_admin_user %}
+              <form method="post" action="{{ url_for('disposal.approve_disposal', disposal_id=disposal.id) }}" data-confirm="Xác nhận quyết định hồ sơ thanh lý?">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-primary" name="decision" value="approved" type="submit">Duyệt</button>
+                <button class="btn btn-outline" name="decision" value="rejected" type="submit">Từ chối</button>
+              </form>
+              {% endif %}
+            </td></tr>
             {% else %}<tr><td colspan="5"><div class="empty-state"><i class="bi bi-trash3"></i><br>Chưa có hồ sơ thanh lý nào.</div></td></tr>{% endfor %}
             </tbody>
         </table>

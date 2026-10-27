@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import secrets
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -14,7 +15,28 @@ load_dotenv(BASE_DIR / ".env")
 class Config:
     """Base application configuration."""
 
-    SECRET_KEY = os.getenv("SECRET_KEY", "change-me-in-production")
+    SECRET_KEY = os.getenv("SECRET_KEY") or secrets.token_hex(32)
+    _production = os.getenv("FLASK_ENV", "").strip().lower() == "production"
+    DEBUG = (
+        not _production
+        and os.getenv("FLASK_DEBUG", "").strip().lower() in {"1", "true", "yes"}
+    )
+    SEED_DEMO_DATA = os.getenv("SEED_DEMO_DATA", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+    }
+    INITIAL_ADMIN_USERNAME = os.getenv("INITIAL_ADMIN_USERNAME", "").strip()
+    INITIAL_ADMIN_EMAIL = os.getenv("INITIAL_ADMIN_EMAIL", "").strip()
+    INITIAL_ADMIN_PASSWORD = os.getenv("INITIAL_ADMIN_PASSWORD", "")
+    INITIAL_ADMIN_FULL_NAME = os.getenv("INITIAL_ADMIN_FULL_NAME", "").strip()
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = "Lax"
+    SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+    }
     _database_url = os.getenv("DATABASE_URL", "")
     if _database_url.startswith("sqlite:///"):
         relative_path = _database_url.replace("sqlite:///", "", 1)
@@ -23,9 +45,8 @@ class Config:
             db_path = (BASE_DIR / db_path).resolve()
         SQLALCHEMY_DATABASE_URI = f"sqlite:///{db_path}"
     else:
-        SQLALCHEMY_DATABASE_URI = os.getenv(
-            "DATABASE_URL",
-            f"sqlite:///{BASE_DIR / 'database' / 'school_assets.db'}",
+        SQLALCHEMY_DATABASE_URI = _database_url or (
+            f"sqlite:///{BASE_DIR / 'database' / 'school_assets.db'}"
         )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024
@@ -34,4 +55,8 @@ class Config:
     RAG_TOP_K = int(os.getenv("RAG_TOP_K", "4"))
     LLM_API_KEY = os.getenv("LLM_API_KEY", "")
     LLM_MODEL = os.getenv("LLM_MODEL", "gpt-3.5-turbo")
-    LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openai")
+    LLM_API_BASE_URL = os.getenv(
+        "LLM_API_BASE_URL", "https://api.openai.com/v1/chat/completions"
+    )
+    LLM_TIMEOUT_SECONDS = float(os.getenv("LLM_TIMEOUT_SECONDS", "30"))
+    LLM_MAX_PROMPT_CHARS = int(os.getenv("LLM_MAX_PROMPT_CHARS", "12000"))

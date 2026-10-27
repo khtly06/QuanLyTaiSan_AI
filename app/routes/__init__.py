@@ -1,6 +1,10 @@
 """Routes package registration."""
 
-from flask import redirect
+import logging
+
+from flask import jsonify, redirect
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import text
 
 from app.routes.ai import bp as ai_bp
 from app.routes.assets import bp as assets_bp
@@ -13,6 +17,9 @@ from app.routes.inventory import bp as inventory_bp
 from app.routes.repair import bp as repair_bp
 from app.routes.reports import bp as reports_bp
 from app.routes.transfer import bp as transfer_bp
+from app.models import db
+
+logger = logging.getLogger(__name__)
 
 
 def register_routes(app):
@@ -32,3 +39,12 @@ def register_routes(app):
     @app.route("/")
     def index():
         return redirect("/dashboard")
+
+    @app.route("/health")
+    def health():
+        try:
+            db.session.execute(text("SELECT 1"))
+        except SQLAlchemyError:
+            logger.exception("Application health check failed to query the database.")
+            return jsonify({"status": "unavailable"}), 503
+        return jsonify({"status": "ok"})

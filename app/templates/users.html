@@ -4,9 +4,22 @@
 {% block content %}
 <div class="page-header">
     <div class="page-heading"><i class="bi bi-people"></i><div><h1>Người dùng</h1><p class="page-description">Kiểm soát tài khoản, vai trò và trạng thái truy cập hệ thống.</p></div></div>
-    <div class="header-actions">
-        <button class="btn btn-primary" type="button" disabled><i class="bi bi-person-plus"></i> Thêm người dùng</button>
-    </div>
+    <div class="header-actions"><a class="btn btn-primary" href="#user-form"><i class="bi bi-person-plus"></i> Thêm người dùng</a></div>
+</div>
+{% if error %}<div class="alert-box error">{{ error }}</div>{% endif %}
+<div class="card form-panel" id="user-form">
+    <div class="card-header"><div><h3>Tạo tài khoản</h3><p>Mật khẩu khởi tạo phải có ít nhất 12 ký tự.</p></div></div>
+    <form method="post" action="{{ url_for('auth.users') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="form-grid">
+            <div class="form-field"><label>Họ tên</label><input name="full_name" required></div>
+            <div class="form-field"><label>Tài khoản</label><input name="username" required></div>
+            <div class="form-field"><label>Email</label><input type="email" name="email" required></div>
+            <div class="form-field"><label>Vai trò</label><select name="role" required>{% for role, label in roles.items() %}<option value="{{ role }}">{{ label }}</option>{% endfor %}</select></div>
+            <div class="form-field"><label>Mật khẩu tạm</label><input type="password" name="password" minlength="12" required></div>
+        </div>
+        <button class="btn btn-primary" type="submit">Tạo tài khoản</button>
+    </form>
 </div>
 
 <div class="card table-card">
@@ -29,7 +42,14 @@
                     <td>{{ item.username }}</td>
                     <td>{{ item.email }}</td>
                     <td><span class="badge {{ 'status-info' if item.role == 'admin' else 'status-active' }}">{{ item.display_role }}</span></td>
-                    <td><span class="badge {{ 'status-active' if item.is_active else 'status-closed' }}">{{ 'Hoạt động' if item.is_active else 'Khóa' }}</span></td>
+                    <td><span class="badge {{ 'status-active' if item.is_active else 'status-closed' }}">{{ 'Hoạt động' if item.is_active else 'Khóa' }}</span>
+                        {% if item.id != current_user.id %}
+                        <form method="post" action="{{ url_for('auth.toggle_user_active', user_id=item.id) }}" data-confirm="Thay đổi trạng thái tài khoản này?">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-outline" type="submit">{{ 'Khóa' if item.is_active else 'Mở khóa' }}</button>
+                        </form>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% else %}
                 <tr><td colspan="6"><div class="empty-state"><i class="bi bi-people"></i><br>Chưa có tài khoản nào.</div></td></tr>

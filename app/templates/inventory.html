@@ -10,11 +10,11 @@
 <div class="card form-panel" id="inventory-form">
     <div class="card-header"><div><h3>Tạo đợt kiểm kê mới</h3><p>Xác lập phạm vi thời gian cho lần kiểm kê tiếp theo.</p></div><i class="bi bi-calendar2-plus"></i></div>
     <form method="post" action="/inventory" data-confirm="Bạn có muốn tạo đợt kiểm kê này không?">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-grid">
             <div class="form-field"><label>Tên đợt kiểm kê</label><input name="name" placeholder="Ví dụ: Kiểm kê đầu năm" required></div>
             <div class="form-field"><label>Ngày bắt đầu</label><input type="date" name="start_date" required></div>
             <div class="form-field"><label>Ngày kết thúc</label><input type="date" name="end_date"></div>
-            <div class="form-field"><label>Trạng thái</label><select name="status"><option value="pending">Chờ xử lý</option><option value="completed">Hoàn thành</option></select></div>
         </div>
         <div class="header-actions" style="margin-top: 18px;"><button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i> Lưu đợt kiểm kê</button></div>
     </form>
@@ -24,7 +24,7 @@
     <div class="table-wrap">
         <table><thead><tr><th>Mã đợt</th><th>Tên đợt</th><th>Ngày bắt đầu</th><th>Ngày kết thúc</th><th>Trạng thái</th></tr></thead>
             <tbody>
-            {% for item in inventory_rows %}<tr><td>#{{ '%03d'|format(item.id) }}</td><td><strong>{{ item.name }}</strong></td><td>{{ item.start_date }}</td><td>{{ item.end_date or 'Chưa xác định' }}</td><td><span class="badge status-{{ item.status }} status-label">{{ 'Hoàn thành' if item.status == 'completed' else 'Chờ xử lý' }}</span></td></tr>
+            {% for item in inventory_rows %}<tr><td><a href="{{ url_for('inventory.inventory_detail', inventory_id=item.id) }}">#{{ '%03d'|format(item.id) }}</a></td><td><strong>{{ item.name }}</strong></td><td>{{ item.start_date }}</td><td>{{ item.end_date or 'Chưa xác định' }}</td><td><span class="badge status-{{ item.status }} status-label">{{ 'Hoàn thành' if item.status == 'completed' else 'Chờ xử lý' }}</span></td></tr>
             {% else %}<tr><td colspan="5"><div class="empty-state"><i class="bi bi-clipboard-x"></i><br>Chưa có đợt kiểm kê nào. Hãy tạo đợt đầu tiên.</div></td></tr>{% endfor %}
             </tbody>
         </table>

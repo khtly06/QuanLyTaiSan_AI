@@ -9,7 +9,7 @@ from app.models.asset import Asset
 from app.models.category import Category
 from app.models.department import Department
 from app.models.disposal import Disposal
-from app.models.inventory import Inventory, InventoryDetail
+from app.models.inventory import Inventory, InventoryDetail, InventoryObservation
 from app.models.repair import Repair
 from app.models.transfer import Transfer
 from app.models.user import User
@@ -22,6 +22,7 @@ __all__ = [
     "Disposal",
     "Inventory",
     "InventoryDetail",
+    "InventoryObservation",
     "Repair",
     "Transfer",
     "User",

@@ -49,6 +49,7 @@
         <div class="detail-actions">
             <form method="post" action="{{ url_for('assets.delete_asset', asset_id=asset.id) }}"
                   data-confirm="Bạn có chắc muốn xóa tài sản {{ asset.asset_code }}? Thao tác này không thể hoàn tác.">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button class="btn btn-danger" type="submit"><i class="bi bi-trash3"></i> Xóa tài sản</button>
             </form>
         </div>

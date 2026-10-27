@@ -26,6 +26,7 @@
             {% endif %}
 
             <form method="post" action="{{ url_for('auth.login') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="form-field">
                     <label for="username">Tài khoản</label>
                     <input id="username" name="username" type="text" placeholder="Nhập tên tài khoản" required>

@@ -23,6 +23,7 @@ class Transfer(db.Model):
     transfer_date = db.Column(db.Date, nullable=False)
     reason = db.Column(db.Text, nullable=True)
     notes = db.Column(db.Text, nullable=True)
+    performed_by = db.Column(db.String(120), nullable=True)
 
     asset = db.relationship("Asset", back_populates="transfers")
     from_department = db.relationship(

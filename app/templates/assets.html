@@ -53,6 +53,7 @@
         <span class="form-required"><i class="bi bi-asterisk"></i> Trường bắt buộc</span>
     </div>
     <form method="post" action="{{ url_for('assets.list_assets') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-grid">
             <div class="form-field">
                 <label for="asset_code">Mã tài sản <span>*</span></label>
@@ -202,6 +203,7 @@
                                 <i class="bi bi-pencil-square"></i>
                             </button>
                             <form method="post" action="{{ url_for('assets.delete_asset', asset_id=asset.id) }}" data-confirm="Bạn có chắc muốn xóa tài sản {{ asset.asset_code }}? Thao tác này không thể hoàn tác.">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button class="icon-btn danger" type="submit" title="Xóa tài sản"><i class="bi bi-trash3"></i></button>
                             </form>
                         </div>
@@ -235,6 +237,7 @@
             <button class="modal-close" type="button" data-close-modal aria-label="Đóng"><i class="bi bi-x-lg"></i></button>
         </div>
         <form method="post" id="editAssetForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-grid">
                 <div class="form-field">
                     <label for="edit_asset_code">Mã tài sản <span>*</span></label>

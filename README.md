@@ -1,342 +1,103 @@
-# Quản lý tài sản trường học AI
+# Quản lý tài sản trường học
 
-Dự án demo xây dựng hệ thống **quản lý tài sản trường học tích hợp AI theo mô hình RAG (Retrieval-Augmented Generation)**.
+Ứng dụng web Flask/SQLAlchemy để quản lý tài sản trường học. Có luồng ghi nhận kiểm kê, sửa chữa, thanh lý có phê duyệt, điều chuyển, RBAC/CSRF và báo cáo AI theo số liệu được chọn. Đây chưa phải sản phẩm production được chứng nhận: migration vẫn chưa versioned, chưa có audit log tổng quát, login rate limit, E2E hoặc thử nghiệm provider AI live. Xem [bảng đối chiếu](docs/TRACEABILITY_MATRIX.md) và [báo cáo gap](docs/GAP_ANALYSIS.md).
 
-Hệ thống hỗ trợ quản lý tập trung tài sản, danh mục, phòng ban, kiểm kê, điều chuyển, sửa chữa, thanh lý và báo cáo. AI được tích hợp trực tiếp vào hệ thống để hỗ trợ tra cứu quy định, quy trình và tài liệu nghiệp vụ.
-## Cấu trúc project 
-- app/: mã nguồn chính của ứng dụng 
-- database/: schema và dữ liệu mẫu
-- data/documents/: tài liệu tham khảo cho RAG 
-- vector_db/: lưu trữ vector database 
-- tests/: kiểm thử chức năng 
-## Bước khởi tạo
-powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
----
+## Công nghệ và cấu trúc
 
-## 1. Mục tiêu
+- Backend: Python, Flask, Flask-SQLAlchemy.
+- Database mặc định: SQLite tại `database/school_assets.db`; có thể đặt `DATABASE_URL`.
+- Giao diện: Jinja templates, CSS, JavaScript trong `app/templates` và `app/static`.
+- AI/RAG: tài liệu trong `data/documents`; gọi LLM server-side qua `app/llm/llm_service.py`.
+- Test: pytest trong `tests/`.
 
-* Số hóa quy trình quản lý tài sản trong trường học.
-* Quản lý tập trung thông tin tài sản và lịch sử xử lý.
-* Hỗ trợ tìm kiếm, lọc và thống kê tài sản.
-* Theo dõi kiểm kê, sửa chữa, điều chuyển và thanh lý.
-* Tích hợp AI để hỗ trợ tra cứu thông tin nghiệp vụ.
-* Áp dụng mô hình RAG để AI sử dụng dữ liệu từ tài liệu được cung cấp.
-
----
-
-## 2. Chức năng chính
-
-### 2.1. Quản lý tài sản
-
-* Thêm tài sản.
-* Xem danh sách tài sản.
-* Xem chi tiết tài sản.
-* Cập nhật thông tin tài sản.
-* Xóa tài sản.
-* Kiểm tra mã tài sản trùng.
-* Kiểm tra dữ liệu bắt buộc.
-* Kiểm tra giá trị tài sản không hợp lệ.
-* Tìm kiếm theo mã, tên hoặc người sử dụng.
-* Lọc theo danh mục, phòng ban và trạng thái.
-
-### 2.2. Quản lý danh mục
-
-* Thêm và quản lý danh mục tài sản.
-* Phân loại tài sản theo nhóm.
-* Theo dõi số lượng tài sản theo danh mục.
-
-### 2.3. Quản lý phòng ban
-
-* Quản lý các phòng ban sử dụng tài sản.
-* Theo dõi tài sản được phân bổ cho từng phòng ban.
-* Thống kê tài sản theo phòng ban.
-
-### 2.4. Kiểm kê
-
-* Tạo đợt kiểm kê.
-* Quản lý thời gian kiểm kê.
-* Ghi nhận tình trạng thực tế của tài sản.
-* So sánh trạng thái dự kiến và thực tế.
-* Ghi nhận chênh lệch kiểm kê.
-
-### 2.5. Điều chuyển tài sản
-
-* Tạo phiếu điều chuyển.
-* Xác định phòng ban chuyển đi.
-* Xác định phòng ban tiếp nhận.
-* Ghi nhận ngày điều chuyển.
-* Lưu lý do và ghi chú.
-
-### 2.6. Sửa chữa
-
-* Tạo yêu cầu sửa chữa.
-* Theo dõi trạng thái sửa chữa.
-* Ghi nhận ngày yêu cầu và ngày sửa chữa.
-* Quản lý chi phí sửa chữa.
-* Theo dõi lịch sử sửa chữa.
-
-### 2.7. Thanh lý
-
-* Tạo yêu cầu thanh lý.
-* Ghi nhận ngày thanh lý.
-* Ghi nhận lý do thanh lý.
-* Quản lý giá trị thanh lý.
-* Theo dõi trạng thái xử lý.
-
-### 2.8. Báo cáo
-
-Hệ thống cung cấp các số liệu:
-
-* Tổng số tài sản.
-* Tài sản đang sử dụng.
-* Tài sản đang sửa chữa.
-* Tài sản thanh lý.
-* Tổng giá trị tài sản.
-* Thống kê theo phòng ban.
-* Thống kê theo danh mục.
-* Thống kê sửa chữa.
-* Thống kê điều chuyển.
-* Thống kê thanh lý.
-* Thống kê kiểm kê.
-
----
-
-## 3. Chức năng AI và RAG
-
-Hệ thống tích hợp AI trực tiếp vào ứng dụng thông qua module AI.
-
-### 3.1. AI Chatbot
-
-Người dùng có thể đặt câu hỏi liên quan đến:
-
-* Quy định quản lý tài sản.
-* Quy trình kiểm kê.
-* Quy trình thanh lý.
-* Chính sách quản lý tài sản.
-* Tài liệu nghiệp vụ của nhà trường.
-
-### 3.2. Quy trình RAG
-
-Hệ thống thực hiện các bước:
-
-```text
-Tài liệu nghiệp vụ
-       ↓
-Document Loader
-       ↓
-Document Chunker
-       ↓
-Embedding
-       ↓
-Vector Store
-       ↓
-Retriever
-       ↓
-Prompt Builder
-       ↓
-LLM / AI Model
-       ↓
-Câu trả lời cho người dùng
-```
-
-Các tài liệu phục vụ RAG được lưu tại:
-
-```text
-data/documents/
-```
-
----
-
-## 4. Công nghệ sử dụng
-
-### Backend
-
-* Python
-* Flask
-* SQLAlchemy
-* SQLite
-
-### Frontend
-
-* HTML5
-* CSS3
-* JavaScript
-* Bootstrap Icons
-
-### AI
-
-* RAG
-* Sentence Transformers
-* Embedding
-* Vector Store
-* LLM API
-
-### Testing
-
-* Pytest
-
----
-
-## 5. Cấu trúc project
-
-```text
-QuanLyTaiSan_AI/
-│
-├── app.py
-├── config.py
-├── requirements.txt
-├── README.md
-│
-├── app/
-│   ├── llm/
-│   ├── models/
-│   ├── rag/
-│   ├── routes/
-│   ├── services/
-│   ├── static/
-│   └── templates/
-│
-├── data/
-│   └── documents/
-│
-├── database/
-│   ├── schema.sql
-│   └── seed.sql
-│
-├── docs/
-├── prompts/
-├── tests/
-└── vector_db/
-```
-
----
-
-## 6. Cài đặt
-
-### Bước 1: Clone project
-
-```powershell
-git clone git@github.com:khtly06/QuanLyTaiSan_AI.git
-cd QuanLyTaiSan_AI
-```
-
-### Bước 2: Tạo môi trường ảo
+## Cài đặt và khởi động (PowerShell)
 
 ```powershell
 python -m venv .venv
-```
-
-Kích hoạt:
-
-```powershell
 .\.venv\Scripts\Activate.ps1
-```
-
-### Bước 3: Cài đặt thư viện
-
-```powershell
 pip install -r requirements.txt
+Copy-Item .env.example .env
 ```
 
-### Bước 4: Cấu hình môi trường
+Mở `.env`, tạo `SECRET_KEY` ngẫu nhiên bằng `python -c "import secrets; print(secrets.token_hex(32))"` (ít nhất 32 ký tự khi production) rồi cấu hình thông tin quản trị ban đầu (xem bên dưới). Không commit `.env`.
 
-Tạo file `.env` và cấu hình các biến môi trường cần thiết cho ứng dụng và AI.
-
-Không đưa API key hoặc thông tin bí mật lên GitHub.
-
-### Bước 5: Chạy ứng dụng
+Khởi chạy:
 
 ```powershell
 python app.py
 ```
 
-Mở trình duyệt:
+Mặc định server bind `127.0.0.1:5000`, debug tắt. Chỉ cấu hình `HOST=0.0.0.0` khi chủ động triển khai sau reverse proxy/firewall phù hợp. Có endpoint `/health` kiểm tra kết nối DB; chưa có bằng chứng triển khai production.
 
-```text
-http://127.0.0.1:5000
+### Tạo tài khoản quản trị ban đầu
+
+Không còn tài khoản/mật khẩu demo được tạo tự động. Đặt đủ các biến sau trong `.env` trước lần khởi động đầu tiên:
+
+```dotenv
+INITIAL_ADMIN_USERNAME=admin
+INITIAL_ADMIN_EMAIL=admin@example.edu.vn
+INITIAL_ADMIN_FULL_NAME=Quan tri vien
+INITIAL_ADMIN_PASSWORD=thay-bang-mat-khau-dai-ngau-nhien
 ```
 
----
+Mật khẩu phải có ít nhất 12 ký tự. Tài khoản chỉ được tạo nếu username chưa tồn tại; khởi động sau không ghi đè mật khẩu. Nên xóa `INITIAL_ADMIN_PASSWORD` khỏi `.env` sau khi tài khoản được tạo.
 
-## 7. Tài khoản demo
+Tùy chọn `SEED_DEMO_DATA=true` nạp dữ liệu SQL mẫu khi bảng danh mục còn trống. Để mặc định `false` cho dữ liệu thật.
 
-### Administrator
+### Vai trò và nghiệp vụ chính
 
-```text
-Username: admin
-Password: admin123
+- `admin`: quản trị tài khoản, toàn quyền nghiệp vụ và quyết định duyệt/từ chối thanh lý.
+- `manager`: thao tác nghiệp vụ và tạo báo cáo AI.
+- `inspector`: thao tác kiểm kê; các luồng khác chỉ đọc.
+- `staff`: chỉ đọc, ngoại trừ đổi mật khẩu của mình và AI chat.
+
+CSRF áp dụng cho form và request thay đổi; JSON fetch cần gửi token `X-CSRFToken`. Đợt kiểm kê chụp danh sách tài sản lúc tạo và chỉ hoàn tất sau khi từng tài sản được kiểm đếm tường minh; chỉ ghi nhận “không tìm thấy” sau xác nhận của người kiểm kê. Yêu cầu sửa chữa có vòng đời riêng và đồng bộ trạng thái tài sản. Yêu cầu thanh lý ở trạng thái chờ đến khi admin quyết định; tài sản được duyệt chuyển sang `disposal`.
+
+## Cấu hình AI
+
+```dotenv
+LLM_API_KEY=
+LLM_MODEL=gpt-3.5-turbo
+LLM_API_BASE_URL=https://api.openai.com/v1/chat/completions
+LLM_TIMEOUT_SECONDS=30
+LLM_MAX_PROMPT_CHARS=12000
 ```
 
-### Nhân viên
+Chỉ gọi API tương thích OpenAI Chat Completions. API key chỉ được dùng ở backend; không điền key thật vào tài liệu hoặc Git. Nếu thiếu key, báo cáo vẫn trả số liệu database và hiển thị rõ AI chưa được cấu hình. Đầu ra báo cáo AI được yêu cầu ở JSON và kiểm tra cấu trúc trước khi hiển thị. Chưa có xác nhận gọi thành công nhà cung cấp thật trong phiên kiểm tra này.
 
-```text
-Username: staff01
-Password: staff123
-```
+## Database, backup và khôi phục
 
----
+Schema ORM được tạo lúc khởi động bằng `db.create_all()` và ứng dụng có nâng cấp SQLite additive/idempotent cho các cột workflow mới; đây không phải migration versioned. Test nâng cấp xác nhận dữ liệu cũ được giữ và foreign keys SQLite bật. Dữ liệu thực tế không nên reset để test.
 
-## 8. Kiểm thử
+Có thể tạo bản sao SQLite đã kiểm tra integrity bằng `python -m database.backup backup --output C:\backups\school_assets.db`. Khôi phục sang file mới bằng `python -m database.backup restore --source C:\backups\school_assets.db --destination C:\restore-test\school_assets.db`. Công cụ từ chối ghi đè file có sẵn; test chỉ chạy trên SQLite tạm, chưa có restore drill production hay lịch backup tự động. Giữ backup ngoài thư mục làm việc và xác minh bản khôi phục trước khi dùng.
 
-Chạy toàn bộ test:
+Endpoint `/health` thực hiện query DB và trả `503` nếu không truy vấn được. Đây là health check cơ bản, không thay thế giám sát/kiểm tra sẵn sàng production.
+
+### Tạo dữ liệu mẫu cho workflow
+
+Sau khi đã có ít nhất 20 tài sản `TEST-ASSET-*` và các phòng ban `TEST-*`, chạy:
 
 ```powershell
-pytest
+python -m database.seed_workflow_samples
 ```
 
-Một số nhóm test:
+Script thêm 10 kết quả kiểm kê đã ghi, 10 yêu cầu thanh lý (5 chờ duyệt, 5 từ chối), 10 điều chuyển và 10 phiếu sửa chữa. Mọi bản ghi có nhãn `[TEST-SAMPLE]`; script có thể chạy lại mà không tạo bản sao. Dữ liệu được ghi vào SQLite đã cấu hình nên tồn tại sau khi tải lại ứng dụng. Các yêu cầu sửa chữa còn mở sẽ đặt tài sản tương ứng ở trạng thái `repair`; các yêu cầu thanh lý mẫu không tự thanh lý tài sản.
+
+## Kiểm thử
 
 ```powershell
-pytest tests/test_assets.py
-pytest tests/test_rag.py
-pytest tests/test_llm.py
-pytest tests/test_rag_integration.py
-pytest tests/test_ui_routes.py
+python -m pytest -q
 ```
 
----
+Test tạo database riêng trong thư mục tạm và không sử dụng database mặc định. Chạy `python -m pytest -q` để kiểm tra toàn suite. Test LLM dùng mock HTTP; không phải bằng chứng API/model thật đã chạy. Để chạy test, các dependencies Python cơ bản phải được cài; `pip install -r requirements.txt` cài đầy đủ thư viện ứng dụng.
 
-## 9. Bảo mật
+## Tài liệu
 
-Các thông tin nhạy cảm phải được lưu trong file `.env`.
-
-Không commit các dữ liệu như:
-
-```text
-.env
-.venv/
-__pycache__/
-.pytest_cache/
-```
-
-API key không được đưa trực tiếp vào source code hoặc repository công khai.
-
----
-
-## 10. Cập nhật project
-
-Sau khi chỉnh sửa code:
-
-```powershell
-git add .
-git commit -m "Cập nhật hệ thống"
-git push
-```
-
----
-
-## 11. Định hướng phát triển
-
-Trong các phiên bản tiếp theo có thể mở rộng:
-
-* Phân quyền chi tiết theo vai trò.
-* Xuất báo cáo Excel/PDF.
-* Biểu đồ thống kê trực quan.
-* Thông báo tài sản cần sửa chữa.
-* Cảnh báo tài sản quá hạn kiểm kê.
-* Cải thiện khả năng trả lời của AI.
-* Bổ sung thêm tài liệu nghiệp vụ cho hệ thống RAG.
-* Theo dõi lịch sử thay đổi dữ liệu.
+- [Phân tích nghiệp vụ](docs/ANALYSIS.md)
+- [Use Case](docs/USE_CASE.md)
+- [Kiến trúc và ERD](docs/ARCHITECTURE.md)
+- [Phân tích khoảng trống và ưu tiên](docs/GAP_ANALYSIS.md)
+- [Ma trận truy vết 36 nhiệm vụ](docs/TRACEABILITY_MATRIX.md)
+- [Nhật ký SDLC AI](docs/AI_SDLC_LOG.md)
+- [Thử nghiệm prompt](docs/AI_PROMPT_EXPERIMENTS.md)
+- [Báo cáo bàn giao và kịch bản demo](docs/FINAL_DELIVERY.md)

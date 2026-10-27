@@ -10,6 +10,7 @@
 <div class="card form-panel" id="department-form">
     <div class="card-header"><div><h3>Thêm phòng ban</h3><p>Mã phòng ban giúp phân loại và điều chuyển tài sản chính xác.</p></div><i class="bi bi-building-add"></i></div>
     <form method="post" action="/departments" data-confirm="Bạn có muốn lưu phòng ban này không?">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-grid">
             <div class="form-field"><label>Tên phòng ban</label><input name="name" placeholder="Ví dụ: Phòng Kế toán" required></div>
             <div class="form-field"><label>Mã phòng ban</label><input name="code" placeholder="Ví dụ: KT" required></div>
@@ -21,10 +22,10 @@
 <div class="card table-card">
     <div class="card-header"><div><h3>Danh sách phòng ban</h3><p>Các đơn vị đang được sử dụng trong hệ thống.</p></div><span class="record-count">{{ departments|length }} bản ghi</span></div>
     <div class="table-wrap">
-        <table><thead><tr><th>Mã</th><th>Tên phòng ban</th><th>Mã đơn vị</th><th>Mô tả</th><th>Trạng thái</th></tr></thead>
+        <table><thead><tr><th>Mã</th><th>Tên phòng ban</th><th>Mã đơn vị</th><th>Mô tả</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
             <tbody>
-            {% for department in departments %}<tr><td>#{{ '%03d'|format(department.id) }}</td><td><strong>{{ department.name }}</strong></td><td><span class="badge status-info">{{ department.code }}</span></td><td>{{ department.description or 'Chưa có mô tả' }}</td><td><span class="badge status-active">Đang hoạt động</span></td></tr>
-            {% else %}<tr><td colspan="5"><div class="empty-state"><i class="bi bi-diagram-3"></i><br>Chưa có phòng ban nào.</div></td></tr>{% endfor %}
+            {% for department in departments %}<tr><td>#{{ '%03d'|format(department.id) }}</td><td><strong>{{ department.name }}</strong></td><td><span class="badge status-info">{{ department.code }}</span></td><td>{{ department.description or 'Chưa có mô tả' }}</td><td><span class="badge status-active">Đang hoạt động</span></td><td><form method="post" action="{{ url_for('departments.update_department', department_id=department.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input name="name" value="{{ department.name }}" required><input name="code" value="{{ department.code }}" required><input name="description" value="{{ department.description or '' }}"><button class="btn btn-primary" type="submit">Cập nhật</button></form><form method="post" action="{{ url_for('departments.delete_department', department_id=department.id) }}" data-confirm="Xóa phòng ban này? Phòng ban đang có tài sản/lịch sử sẽ được giữ lại."><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-danger" type="submit">Xóa</button></form></td></tr>
+            {% else %}<tr><td colspan="6"><div class="empty-state"><i class="bi bi-diagram-3"></i><br>Chưa có phòng ban nào.</div></td></tr>{% endfor %}
             </tbody>
         </table>
     </div>

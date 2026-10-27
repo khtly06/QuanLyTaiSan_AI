@@ -1,16 +1,29 @@
 """Initialize the Flask application package."""
 
 from pathlib import Path
+import os
 
-from flask import Flask, session
-from sqlalchemy import text
+from flask import Flask, abort, jsonify, redirect, request, session, url_for
+from flask_wtf.csrf import CSRFError, CSRFProtect
+from sqlalchemy import event, text
+from sqlalchemy.engine import Engine
 from werkzeug.security import generate_password_hash
 
 from config import Config
 
+csrf = CSRFProtect()
+
+
+@event.listens_for(Engine, "connect")
+def enable_sqlite_foreign_keys(connection, _record):
+    if connection.__class__.__module__.startswith("sqlite3"):
+        cursor = connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
+
 
 def _ensure_seed_data(app):
-    """Create the SQLite schema and seed data when the database is empty."""
+    """Create the schema and optionally provision an administrator or demo data."""
     from app.models import Category, User, db
 
     database_uri = app.config["SQLALCHEMY_DATABASE_URI"]
@@ -32,35 +45,74 @@ def _ensure_seed_data(app):
             db.session.execute(text("ALTER TABLE users ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT 1"))
             db.session.commit()
 
-        default_users = {
-            "admin": {
-                "email": "admin@school.edu.vn",
-                "password_hash": generate_password_hash("admin123"),
-                "role": "admin",
-                "full_name": "Admin",
-                "is_active": True,
+        timestamp_type = (
+            "DATETIME"
+            if db.engine.dialect.name in {"sqlite", "mysql"}
+            else "TIMESTAMP"
+        )
+        additive_columns = {
+            "inventory": {"created_by": "VARCHAR(120)"},
+            "transfers": {"performed_by": "VARCHAR(120)"},
+            "inventory_details": {
+                "checked_by": "VARCHAR(120)",
+                "checked_at": timestamp_type,
             },
-            "staff01": {
-                "email": "staff01@school.edu.vn",
-                "password_hash": generate_password_hash("staff123"),
-                "role": "staff",
-                "full_name": "Nhân viên quản lý",
-                "is_active": True,
+            "repairs": {
+                "requested_by": "VARCHAR(120)",
+                "updated_by": "VARCHAR(120)",
+            },
+            "disposals": {
+                "requested_by": "VARCHAR(120)",
+                "decided_by": "VARCHAR(120)",
+                "decided_at": timestamp_type,
             },
         }
+        for table, additions in additive_columns.items():
+            if table not in table_names:
+                continue
+            existing_columns = {
+                column["name"] for column in db.inspect(db.engine).get_columns(table)
+            }
+            for column, sql_type in additions.items():
+                if column not in existing_columns:
+                    db.session.execute(
+                        text(
+                            f"ALTER TABLE {table} ADD COLUMN {column} {sql_type}"
+                        )
+                    )
+            db.session.commit()
 
-        for username, payload in default_users.items():
-            user = User.query.filter_by(username=username).first()
-            if user is None:
-                user = User(username=username, **payload)
-                db.session.add(user)
-            else:
-                for field, value in payload.items():
-                    setattr(user, field, value)
+        admin_fields = {
+            "username": app.config.get("INITIAL_ADMIN_USERNAME", ""),
+            "email": app.config.get("INITIAL_ADMIN_EMAIL", ""),
+            "password": app.config.get("INITIAL_ADMIN_PASSWORD", ""),
+            "full_name": app.config.get("INITIAL_ADMIN_FULL_NAME", ""),
+        }
+        if any(admin_fields.values()):
+            if not all(admin_fields.values()):
+                raise ValueError(
+                    "All INITIAL_ADMIN_USERNAME, INITIAL_ADMIN_EMAIL, "
+                    "INITIAL_ADMIN_PASSWORD, and INITIAL_ADMIN_FULL_NAME "
+                    "values must be set to provision the initial administrator."
+                )
+            if len(admin_fields["password"]) < 12:
+                raise ValueError(
+                    "INITIAL_ADMIN_PASSWORD must contain at least 12 characters."
+                )
+            if User.query.filter_by(username=admin_fields["username"]).first() is None:
+                db.session.add(
+                    User(
+                        username=admin_fields["username"],
+                        email=admin_fields["email"],
+                        password_hash=generate_password_hash(admin_fields["password"]),
+                        role="admin",
+                        full_name=admin_fields["full_name"],
+                        is_active=True,
+                    )
+                )
+                db.session.commit()
 
-        db.session.commit()
-
-        if Category.query.first() is None:
+        if app.config.get("SEED_DEMO_DATA") and Category.query.first() is None:
             seed_file = Path(app.root_path).resolve().parent / "database" / "seed.sql"
             if seed_file.exists():
                 sql = seed_file.read_text(encoding="utf-8")
@@ -71,15 +123,75 @@ def _ensure_seed_data(app):
                 db.session.commit()
 
 
-def create_app():
+def create_app(test_config=None):
     """Create and configure the app instance."""
     app = Flask(__name__)
     app.config.from_object(Config)
+    if test_config:
+        app.config.update(test_config)
 
     from app.models import User, db
 
+    if os.environ.get("FLASK_ENV", "").strip().lower() == "production":
+        configured_secret = os.getenv("SECRET_KEY", "")
+        if len(configured_secret) < 32 or configured_secret.lower() in {
+            "change-me-in-production",
+            "change-me",
+            "secret",
+            "changeme",
+        }:
+            raise RuntimeError(
+                "Set a non-placeholder SECRET_KEY with at least 32 characters "
+                "when FLASK_ENV=production."
+            )
+
     db.init_app(app)
+    csrf.init_app(app)
     _ensure_seed_data(app)
+
+    @app.before_request
+    def enforce_user_and_role():
+        endpoint = request.endpoint or ""
+        if endpoint == "auth.login" or endpoint == "static" or not session.get("user_id"):
+            return None
+
+        user = db.session.get(User, session["user_id"])
+        if user is None or not user.is_active:
+            session.clear()
+            if request.is_json:
+                return jsonify({"message": "Phiên đăng nhập không còn hợp lệ."}), 401
+            return redirect(url_for("auth.login"))
+
+        if endpoint in {"auth.users", "auth.settings"} and not user.is_admin:
+            abort(403)
+
+        if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
+            if endpoint == "ai.report" and user.role not in {"admin", "manager"}:
+                abort(403)
+            if endpoint == "disposal.approve_disposal":
+                if user.is_admin:
+                    return None
+                abort(403)
+            if endpoint == "auth.change_password" or endpoint in {
+                "ai.chat",
+                "ai.report",
+            }:
+                return None
+            if endpoint.startswith("inventory.") and user.role in {
+                "admin",
+                "manager",
+                "inspector",
+            }:
+                return None
+            if user.role not in {"admin", "manager"}:
+                abort(403)
+        return None
+
+    @app.errorhandler(CSRFError)
+    def handle_csrf_error(error):
+        if request.is_json:
+            return jsonify({"message": "Yêu cầu hết hạn hoặc thiếu mã bảo vệ CSRF."}), 400
+        return "Yêu cầu không hợp lệ hoặc đã hết hạn. Vui lòng tải lại trang.", 400
 
     @app.context_processor
     def inject_user():

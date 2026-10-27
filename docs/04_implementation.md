@@ -1,61 +1,22 @@
-# 04 Implementation - Hệ thống quản lý tài sản trường học có tích hợp AI
+# Báo cáo triển khai thực tế
 
-## Mục tiêu triển khai
-Triển khai source code theo `docs/01_requirements.md`, `docs/02_design.md` và `docs/03_implementation_plan.md`.
+## Nền tảng
 
-## Module cần triển khai
-- Authentication và phân quyền.
-- CRUD tài sản.
-- CRUD nhóm tài sản.
-- CRUD phòng ban/vị trí.
-- Điều chuyển tài sản.
-- Kiểm kê.
-- Sửa chữa.
-- Thanh lý.
-- Thống kê.
-- AI báo cáo kiểm kê.
+Repository triển khai Flask + Flask-SQLAlchemy + SQLAlchemy models, Jinja templates và SQLite mặc định. Không có Django project, DRF serializer hoặc migration Django.
 
-## Kiểm thử bắt buộc
-- Mã tài sản không trùng.
-- Điều chuyển chỉ áp dụng cho tài sản hợp lệ.
-- Kiểm kê không chấp nhận tài sản không tồn tại.
-- Thanh lý kiểm tra trạng thái.
-- AI không tự tạo số liệu.
-- AI xử lý dữ liệu thiếu/sai.
+## Các luồng đã triển khai
 
-## Verification tối thiểu
-- Chạy kiểm tra framework.
-- Kiểm tra migration/schema.
-- Chạy test backend.
-- Build frontend.
-- Kiểm tra secret, validation, phân quyền.
+- Cấu hình secret/session an toàn hơn; bootstrap admin tùy chọn, không tự tạo hoặc reset tài khoản demo.
+- CRUD tài sản với validation; CRUD danh mục/phòng ban; điều chuyển có nguồn khớp và cập nhật asset/history cùng transaction.
+- Kiểm kê campaign snapshot, kết quả thực tế có checker/time, ghi nhận tài sản quan sát ngoài snapshot, không tự đánh dấu thiếu và khóa sau khi đủ kết quả.
+- Repair lifecycle có đồng bộ trạng thái tài sản; disposal request/decision tách biệt và giới hạn phê duyệt admin.
+- Backend RBAC/CSRF, AI report theo phòng ban hoặc inventory campaign, system prompt riêng cho RAG.
+- SQLite additive schema upgrade, backup/restore sang file mới với integrity check, `/health` query DB.
 
-## Source code đã thay đổi
-- `backend/school_assets`: cấu hình Django, URL, dashboard view.
-- `backend/assets`: AssetGroup, Asset, serializer và CRUD API.
-- `backend/departments`: Department, Location và CRUD API.
-- `backend/inventory`, `transfers`, `maintenance`, `disposals`: models, serializers và API nghiệp vụ.
-- `backend/ai_reports`: report model, deterministic report service và endpoint kiểm kê.
-- `frontend/templates`, `frontend/static`: dashboard Bootstrap 5.
-- `tests/test_workflows.py`: test nghiệp vụ và AI.
+## Bằng chứng test
 
-## Traceability
-- FR-ASSET/FR-DEPT: models và ModelViewSet CRUD.
-- FR-TRANSFER: chặn tài sản mất/đã thanh lý và vị trí nguồn đích trùng.
-- FR-INVENTORY: khóa ngoại asset/campaign và ràng buộc duy nhất.
-- FR-MAINTENANCE/FR-DISPOSAL: request models và API; thanh lý chặn tài sản đã thanh lý.
-- FR-AI-REPORT: report chỉ tổng hợp input hợp lệ, không tạo tài sản hoặc số liệu ngoài input.
+`python -m pytest -q` — **63 passed**. Suite dùng SQLite tạm. HTTP LLM được mock; đây không phải test gọi model/provider thật. Chưa chạy versioned migration, lint, type-check, browser E2E, deploy production, load test hoặc restore drill production.
 
-## Verification
-- `manage.py check`: PASS.
-- `manage.py makemigrations`: PASS, migration initial cho 7 module.
-- `manage.py migrate`: PASS trên SQLite.
-- `python -m pytest`: PASS, 5 tests.
-- Security: CSRF middleware, ORM chống SQL injection, secret lấy từ environment; production cần thay secret và đặt `DEBUG=False`.
+## Known limitations
 
-## Blocker / limitation
-- AI hiện là deterministic local service, chưa gọi LLM bên ngoài.
-- Phân quyền chi tiết theo actor và các màn hình CRUD mở rộng cần tiếp tục hoàn thiện.
-
-STATUS: PASS
-NEXT_PROMPT: prompts/05_review_testing.md
+Chưa có migration versioned, audit log tổng quát, rate limiting, ACL theo department cho từng user hoặc Location entity. Provider AI live và ba vòng prompt experiment chưa chạy. Xem [GAP_ANALYSIS.md](./GAP_ANALYSIS.md) và [TRACEABILITY_MATRIX.md](./TRACEABILITY_MATRIX.md).

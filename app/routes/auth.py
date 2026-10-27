@@ -2,12 +2,19 @@
 
 from functools import wraps
 
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, flash, redirect, render_template, request, session, url_for
+from sqlalchemy.exc import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.models import User, db
 
 bp = Blueprint("auth", __name__)
+ROLE_LABELS = {
+    "admin": "Quản trị viên",
+    "manager": "Quản lý tài sản",
+    "inspector": "Kiểm kê viên",
+    "staff": "Nhân viên",
+}
 
 
 def login_required(view):
@@ -15,7 +22,9 @@ def login_required(view):
 
     @wraps(view)
     def wrapped(*args, **kwargs):
-        if "user_id" not in session:
+        user = current_user()
+        if user is None or not user.is_active:
+            session.clear()
             return redirect(url_for("auth.login"))
         return view(*args, **kwargs)
 
@@ -59,7 +68,8 @@ def login():
         return render_template("login.html")
 
 
-@bp.route("/logout")
+@bp.route("/logout", methods=["POST"])
+@login_required
 def logout():
     """Logout the current user and destroy the session."""
     session.clear()
@@ -92,9 +102,9 @@ def change_password():
             flash("⚠ Mật khẩu hiện tại không chính xác.", "error")
             return render_template("change_password.html", user=user, error_message="⚠ Mật khẩu hiện tại không chính xác."), 400
 
-        if len(new_password) < 6:
-            flash("⚠ Mật khẩu mới phải có ít nhất 6 ký tự.", "error")
-            return render_template("change_password.html", user=user, error_message="⚠ Mật khẩu mới phải có ít nhất 6 ký tự."), 400
+        if len(new_password) < 12:
+            flash("⚠ Mật khẩu mới phải có ít nhất 12 ký tự.", "error")
+            return render_template("change_password.html", user=user, error_message="⚠ Mật khẩu mới phải có ít nhất 12 ký tự."), 400
 
         if new_password != confirm:
             flash("⚠ Xác nhận mật khẩu mới không khớp.", "error")
@@ -108,14 +118,73 @@ def change_password():
     return render_template("change_password.html", user=user)
 
 
-@bp.route("/users")
+@bp.route("/users", methods=["GET", "POST"])
 @login_required
 def users():
-    """Display the list of application users for admin management."""
+    """List accounts and create a user with a validated role."""
     user = current_user()
     if user is None or not user.is_admin:
         return redirect(url_for("dashboard.dashboard"))
-    return render_template("users.html", users=User.query.order_by(User.id.asc()).all(), current_user=user)
+    error = None
+    if request.method == "POST":
+        username = (request.form.get("username") or "").strip()
+        email = (request.form.get("email") or "").strip()
+        full_name = (request.form.get("full_name") or "").strip()
+        password = request.form.get("password") or ""
+        role = request.form.get("role") or ""
+        if not all((username, email, full_name, password)) or role not in ROLE_LABELS:
+            error = "Vui lòng nhập đầy đủ thông tin và chọn vai trò hợp lệ."
+        elif len(password) < 12:
+            error = "Mật khẩu phải có ít nhất 12 ký tự."
+        else:
+            db.session.add(
+                User(
+                    username=username,
+                    email=email,
+                    full_name=full_name,
+                    password_hash=generate_password_hash(password),
+                    role=role,
+                    is_active=True,
+                )
+            )
+            try:
+                db.session.commit()
+                return redirect(url_for("auth.users"))
+            except IntegrityError:
+                db.session.rollback()
+                error = "Tên đăng nhập hoặc email đã được sử dụng."
+    response = render_template(
+        "users.html",
+        users=User.query.order_by(User.id.asc()).all(),
+        current_user=user,
+        roles=ROLE_LABELS,
+        error=error,
+    )
+    return response, 400 if request.method == "POST" and error else 200
+
+
+@bp.route("/users/<int:user_id>/toggle-active", methods=["POST"])
+@login_required
+def toggle_user_active(user_id):
+    user = current_user()
+    target = db.session.get(User, user_id)
+    if target is None:
+        abort(404)
+    if target.id == user.id:
+        flash("Không thể khóa tài khoản đang sử dụng.", "error")
+        return redirect(url_for("auth.users"))
+    if target.is_active and target.is_admin:
+        active_admins = User.query.filter_by(role="admin", is_active=True).count()
+        if active_admins <= 1:
+            flash("Không thể khóa quản trị viên đang hoạt động cuối cùng.", "error")
+            return redirect(url_for("auth.users"))
+    target.is_active = not target.is_active
+    db.session.commit()
+    flash(
+        "Đã cập nhật trạng thái tài khoản.",
+        "success",
+    )
+    return redirect(url_for("auth.users"))
 
 
 @bp.route("/settings")
