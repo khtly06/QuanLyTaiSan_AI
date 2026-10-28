@@ -23,7 +23,7 @@ def enable_sqlite_foreign_keys(connection, _record):
 
 
 def _ensure_seed_data(app):
-    """Create the schema and optionally provision an administrator or demo data."""
+    """Create the schema and optionally provision users or demo data."""
     from app.models import Category, User, db
 
     database_uri = app.config["SQLALCHEMY_DATABASE_URI"]
@@ -82,31 +82,36 @@ def _ensure_seed_data(app):
                     )
             db.session.commit()
 
-        admin_fields = {
-            "username": app.config.get("INITIAL_ADMIN_USERNAME", ""),
-            "email": app.config.get("INITIAL_ADMIN_EMAIL", ""),
-            "password": app.config.get("INITIAL_ADMIN_PASSWORD", ""),
-            "full_name": app.config.get("INITIAL_ADMIN_FULL_NAME", ""),
+        initial_users = {
+            "admin": ("INITIAL_ADMIN", "administrator"),
+            "inspector": ("INITIAL_INSPECTOR", "inspector"),
+            "staff": ("INITIAL_STAFF", "staff"),
         }
-        if any(admin_fields.values()):
-            if not all(admin_fields.values()):
+        for role, (prefix, role_label) in initial_users.items():
+            fields = {
+                name: app.config.get(f"{prefix}_{name.upper()}", "")
+                for name in ("username", "email", "password", "full_name")
+            }
+            if not any(fields.values()):
+                continue
+            if not all(fields.values()):
                 raise ValueError(
-                    "All INITIAL_ADMIN_USERNAME, INITIAL_ADMIN_EMAIL, "
-                    "INITIAL_ADMIN_PASSWORD, and INITIAL_ADMIN_FULL_NAME "
-                    "values must be set to provision the initial administrator."
+                    f"All {prefix}_USERNAME, {prefix}_EMAIL, {prefix}_PASSWORD, "
+                    f"and {prefix}_FULL_NAME values must be set to provision "
+                    f"the initial {role_label}."
                 )
-            if len(admin_fields["password"]) < 12:
+            if len(fields["password"]) < 12:
                 raise ValueError(
-                    "INITIAL_ADMIN_PASSWORD must contain at least 12 characters."
+                    f"{prefix}_PASSWORD must contain at least 12 characters."
                 )
-            if User.query.filter_by(username=admin_fields["username"]).first() is None:
+            if User.query.filter_by(username=fields["username"]).first() is None:
                 db.session.add(
                     User(
-                        username=admin_fields["username"],
-                        email=admin_fields["email"],
-                        password_hash=generate_password_hash(admin_fields["password"]),
-                        role="admin",
-                        full_name=admin_fields["full_name"],
+                        username=fields["username"],
+                        email=fields["email"],
+                        password_hash=generate_password_hash(fields["password"]),
+                        role=role,
+                        full_name=fields["full_name"],
                         is_active=True,
                     )
                 )
@@ -172,7 +177,7 @@ def create_app(test_config=None):
                 if user.is_admin:
                     return None
                 abort(403)
-            if endpoint == "auth.change_password" or endpoint in {
+            if endpoint in {"auth.change_password", "auth.logout"} or endpoint in {
                 "ai.chat",
                 "ai.report",
             }:

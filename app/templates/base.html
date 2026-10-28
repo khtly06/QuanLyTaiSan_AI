@@ -35,7 +35,7 @@
     >
 </head>
 
-<body>
+<body{% if request.path == '/dashboard' %} class="dashboard-page"{% endif %}>
 
 {% if request.path != '/login' %}
 
@@ -83,12 +83,13 @@
 
             <!-- ================= TÀI SẢN ================= -->
 
-            <div
+            <a
+                href="{{ url_for('assets.list_assets') }}"
                 class="nav-item {% if request.path.startswith('/assets') %}active child-open{% endif %}"
             >
                 <i class="bi bi-box-seam"></i>
                 <span>Tài sản</span>
-            </div>
+            </a>
 
             <div class="child-list">
 

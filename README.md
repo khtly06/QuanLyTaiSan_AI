@@ -19,7 +19,7 @@ pip install -r requirements.txt
 Copy-Item .env.example .env
 ```
 
-Mở `.env`, tạo `SECRET_KEY` ngẫu nhiên bằng `python -c "import secrets; print(secrets.token_hex(32))"` (ít nhất 32 ký tự khi production) rồi cấu hình thông tin quản trị ban đầu (xem bên dưới). Không commit `.env`.
+Mở `.env`, tạo `SECRET_KEY` ngẫu nhiên bằng `python -c "import secrets; print(secrets.token_hex(32))"` (ít nhất 32 ký tự khi production), rồi cấu hình các tài khoản ban đầu cần dùng bên dưới. Không commit `.env`.
 
 Khởi chạy:
 
@@ -42,6 +42,24 @@ INITIAL_ADMIN_PASSWORD=thay-bang-mat-khau-dai-ngau-nhien
 
 Mật khẩu phải có ít nhất 12 ký tự. Tài khoản chỉ được tạo nếu username chưa tồn tại; khởi động sau không ghi đè mật khẩu. Nên xóa `INITIAL_ADMIN_PASSWORD` khỏi `.env` sau khi tài khoản được tạo.
 
+### Tạo tài khoản không phải quản lý
+
+Có thể tạo một tài khoản kiểm kê viên (`inspector`), nhân viên (`staff`), hoặc cả hai bằng cách điền đủ nhóm biến tương ứng trong `.env` trước lần khởi động đầu tiên:
+
+```dotenv
+INITIAL_INSPECTOR_USERNAME=kiemke
+INITIAL_INSPECTOR_EMAIL=kiemke@example.edu.vn
+INITIAL_INSPECTOR_FULL_NAME=Nhan vien kiem ke
+INITIAL_INSPECTOR_PASSWORD=thay-bang-mat-khau-dai-ngau-nhien
+
+INITIAL_STAFF_USERNAME=nhanvien
+INITIAL_STAFF_EMAIL=nhanvien@example.edu.vn
+INITIAL_STAFF_FULL_NAME=Nhan vien
+INITIAL_STAFF_PASSWORD=thay-bang-mat-khau-dai-ngau-nhien
+```
+
+Chỉ cần cấu hình nhóm tài khoản muốn tạo; mật khẩu mỗi tài khoản phải có ít nhất 12 ký tự. Cách tạo và bảo vệ mật khẩu áp dụng như tài khoản quản trị ban đầu. Xóa biến mật khẩu khỏi `.env` sau khi các tài khoản đã được tạo.
+
 Tùy chọn `SEED_DEMO_DATA=true` nạp dữ liệu SQL mẫu khi bảng danh mục còn trống. Để mặc định `false` cho dữ liệu thật.
 
 ### Vai trò và nghiệp vụ chính
@@ -57,13 +75,13 @@ CSRF áp dụng cho form và request thay đổi; JSON fetch cần gửi token `
 
 ```dotenv
 LLM_API_KEY=
-LLM_MODEL=gpt-3.5-turbo
-LLM_API_BASE_URL=https://api.openai.com/v1/chat/completions
+LLM_MODEL=llama3.2
+LLM_API_BASE_URL=http://localhost:11434/v1/chat/completions
 LLM_TIMEOUT_SECONDS=30
 LLM_MAX_PROMPT_CHARS=12000
 ```
 
-Chỉ gọi API tương thích OpenAI Chat Completions. API key chỉ được dùng ở backend; không điền key thật vào tài liệu hoặc Git. Nếu thiếu key, báo cáo vẫn trả số liệu database và hiển thị rõ AI chưa được cấu hình. Đầu ra báo cáo AI được yêu cầu ở JSON và kiểm tra cấu trúc trước khi hiển thị. Chưa có xác nhận gọi thành công nhà cung cấp thật trong phiên kiểm tra này.
+Ứng dụng mặc định gọi Ollama cục bộ qua API tương thích OpenAI Chat Completions; không cần API key. Cài Ollama, tải model đã chọn (ví dụ `ollama pull llama3.2`) và đảm bảo Ollama đang chạy trước khi dùng tính năng AI. Có thể đặt `LLM_MODEL` và `LLM_API_BASE_URL` trong `.env` để dùng model hoặc endpoint tương thích khác. Đầu ra báo cáo AI được yêu cầu ở JSON và kiểm tra cấu trúc trước khi hiển thị. Chưa có xác nhận gọi thành công Ollama/model thật trong phiên kiểm tra này.
 
 ## Database, backup và khôi phục
 

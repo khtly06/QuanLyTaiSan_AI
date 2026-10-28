@@ -13,8 +13,18 @@ from app.models import (
     db,
 )
 from app.routes.auth import login_required
+from app.routes.repair import REPAIR_STATUSES
 
 bp = Blueprint("reports", __name__)
+DISPOSAL_STATUS_LABELS = {
+    "requested": "Chờ duyệt",
+    "approved": "Đã duyệt",
+    "rejected": "Từ chối",
+}
+INVENTORY_STATUS_LABELS = {
+    "pending": "Đang thực hiện",
+    "completed": "Hoàn thành",
+}
 
 
 @bp.route("/reports")
@@ -95,6 +105,10 @@ def reports():
         status="pending"
     ).count()
 
+    in_progress_repairs = Repair.query.filter_by(
+        status="in_progress"
+    ).count()
+
     completed_repairs = Repair.query.filter_by(
         status="completed"
     ).count()
@@ -153,7 +167,9 @@ def reports():
         repair_rows=repair_rows,
         total_repairs=total_repairs,
         pending_repairs=pending_repairs,
+        in_progress_repairs=in_progress_repairs,
         completed_repairs=completed_repairs,
+        repair_status_labels=REPAIR_STATUSES,
         repair_cost=float(repair_cost),
 
         total_transfers=total_transfers,
@@ -161,7 +177,9 @@ def reports():
 
         total_disposals=total_disposals,
         disposal_rows=disposal_rows,
+        disposal_status_labels=DISPOSAL_STATUS_LABELS,
 
         total_inventory=total_inventory,
         inventory_rows=inventory_rows,
+        inventory_status_labels=INVENTORY_STATUS_LABELS,
     )

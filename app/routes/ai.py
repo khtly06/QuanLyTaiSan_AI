@@ -95,10 +95,8 @@ def build_rag_service():
 
 
 def _safe_llm_generate(prompt, system_prompt=None):
-    """Run the LLM only when a real API key exists; otherwise return a safe message."""
+    """Run the configured LLM provider."""
     llm_service = _create_llm_service()
-    if not llm_service._has_valid_key():
-        return "Không thể tạo phân tích AI vì API key chưa được cấu hình. Hệ thống vẫn đang hiển thị dữ liệu thống kê thực tế từ cơ sở dữ liệu."
     response = llm_service.generate(prompt, system_prompt=system_prompt)
     try:
         parsed_response = json.loads(response)
@@ -397,6 +395,6 @@ def report():
         )
     except RuntimeError:
         logger.warning("LLM provider request failed while generating an AI report.")
-        analysis = "Hệ thống AI hiện đang không thể tạo phân tích tự động vì API lỗi hoặc timeout. Dữ liệu thống kê thực tế vẫn được hiển thị phía trên để người dùng theo dõi."
+        analysis = "Hệ thống AI hiện đang không thể tạo phân tích tự động vì dịch vụ lỗi hoặc timeout. Dữ liệu thống kê thực tế vẫn được hiển thị phía trên để người dùng theo dõi."
 
     return jsonify({"report_type": report_type, "stats": stats, "analysis": analysis})

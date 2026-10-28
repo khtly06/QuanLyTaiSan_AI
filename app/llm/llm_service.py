@@ -45,12 +45,12 @@ class LLMProviderError(RuntimeError):
 
 
 class LLMService:
-    """Call an OpenAI-compatible chat-completions API."""
+    """Call an OpenAI-compatible chat-completions API, such as Ollama."""
 
     def __init__(
         self,
         api_key=None,
-        model="gpt-3.5-turbo",
+        model="llama3.2",
         base_url=None,
         timeout=None,
         max_prompt_chars=None,
@@ -59,10 +59,10 @@ class LLMService:
             self.api_key = api_key
         else:
             self.api_key = os.getenv("LLM_API_KEY", "")
-        self.model = model or os.getenv("LLM_MODEL", "gpt-3.5-turbo")
+        self.model = model or os.getenv("LLM_MODEL", "llama3.2")
         self.base_url = base_url or os.getenv(
             "LLM_API_BASE_URL",
-            "https://api.openai.com/v1/chat/completions",
+            "http://localhost:11434/v1/chat/completions",
         )
         self.timeout = float(
             timeout if timeout is not None else os.getenv("LLM_TIMEOUT_SECONDS", "30")
@@ -72,19 +72,6 @@ class LLMService:
             if max_prompt_chars is not None
             else os.getenv("LLM_MAX_PROMPT_CHARS", "12000")
         )
-
-    def _has_valid_key(self):
-        """Return True when the API key is configured and not a placeholder."""
-        placeholder_values = {
-            "",
-            "your_api_key_here",
-            "change_me",
-            "placeholder",
-            "demo",
-            "example",
-            "test",
-        }
-        return bool(self.api_key) and self.api_key.lower() not in placeholder_values
 
     @staticmethod
     def _provider_error_category(response):
@@ -124,9 +111,6 @@ class LLMService:
 
     def generate(self, prompt, system_prompt=None):
         """Send the prompt to the configured provider and return the answer."""
-        if not self._has_valid_key():
-            raise ValueError("LLM_API_KEY is missing or placeholder. Please set the key in .env.")
-
         if not isinstance(prompt, str) or not prompt.strip():
             raise ValueError("Prompt must be a non-empty string.")
         if system_prompt is not None and (

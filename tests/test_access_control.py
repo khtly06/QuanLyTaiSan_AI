@@ -57,6 +57,17 @@ def test_inspector_can_record_inventory_but_cannot_mutate_assets(app, client):
     assert asset.status_code == 403
 
 
+def test_staff_and_inspector_can_log_out(client):
+    for username in ("test-staff", "test-inspector"):
+        _login(client, username)
+        response = client.post("/logout", follow_redirects=False)
+
+        assert response.status_code == 302
+        assert response.headers["Location"].endswith("/login")
+        with client.session_transaction() as current_session:
+            assert "user_id" not in current_session
+
+
 def test_inactive_user_session_is_revoked(app, client):
     _login(client, "test-staff")
     with app.app_context():

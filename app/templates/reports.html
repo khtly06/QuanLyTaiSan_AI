@@ -158,12 +158,17 @@
         </div>
 
         <div>
-            <div class="metric-label">Đang chờ</div>
+            <div class="metric-label">Chờ xử lý</div>
             <strong>{{ pending_repairs }}</strong>
         </div>
 
         <div>
-            <div class="metric-label">Đã hoàn thành</div>
+            <div class="metric-label">Đang sửa chữa</div>
+            <strong>{{ in_progress_repairs }}</strong>
+        </div>
+
+        <div>
+            <div class="metric-label">Hoàn thành</div>
             <strong>{{ completed_repairs }}</strong>
         </div>
 
@@ -208,7 +213,7 @@
 
                     <td>
                         <span class="badge status-{{ row.status }}">
-                            {{ row.status }}
+                            {{ repair_status_labels.get(row.status, row.status) }}
                         </span>
                     </td>
 
@@ -357,7 +362,7 @@
 
                     <td>
                         <span class="badge status-{{ row.status }}">
-                            {{ row.status }}
+                            {{ disposal_status_labels.get(row.status, row.status) }}
                         </span>
                     </td>
 
@@ -427,7 +432,7 @@
 
                     <td>
                         <span class="badge status-{{ row.status }}">
-                            {{ row.status }}
+                            {{ inventory_status_labels.get(row.status, row.status) }}
                         </span>
                     </td>
 

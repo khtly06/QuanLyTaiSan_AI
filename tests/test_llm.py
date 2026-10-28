@@ -21,9 +21,23 @@ class FakeResponse:
         return self.payload
 
 
-def test_llm_service_missing_key_raises():
-    with pytest.raises(ValueError, match="LLM_API_KEY"):
-        LLMService(api_key="").generate("Question")
+def test_llm_service_allows_local_provider_without_api_key(monkeypatch):
+    request = {}
+
+    def fake_post(url, **kwargs):
+        request["url"] = url
+        request.update(kwargs)
+        return FakeResponse({"choices": [{"message": {"content": "Answer"}}]})
+
+    monkeypatch.setattr("app.llm.llm_service.requests.post", fake_post)
+    service = LLMService(
+        api_key="",
+        model="llama3.2",
+        base_url="http://localhost:11434/v1/chat/completions",
+    )
+
+    assert service.generate("Question") == "Answer"
+    assert request["url"] == "http://localhost:11434/v1/chat/completions"
 
 
 def test_llm_service_sends_bounded_request_and_returns_provider_text(monkeypatch):

@@ -5,429 +5,131 @@
 {% block breadcrumb %}Tổng quan{% endblock %}
 
 {% block content %}
-
-<!-- =====================================================
-     DASHBOARD HEADER
-     ===================================================== -->
-
-<div class="dashboard-header">
-
-    <div class="dashboard-title">
-
-        <div class="dashboard-icon">
-            <i class="bi bi-grid-1x2-fill"></i>
-        </div>
-
+<section class="overview-page" aria-labelledby="overview-title">
+    <header class="overview-heading">
         <div>
-            <h1>Tổng quan hệ thống</h1>
-            <p>
-                Theo dõi tình hình tài sản và hoạt động quản lý
-                trong trường học.
-            </p>
+            <h1 id="overview-title">Tổng quan</h1>
+            <p>Theo dõi tình hình tài sản toàn trường</p>
         </div>
+        <div class="overview-value">
+            <span>Tổng giá trị tài sản</span>
+            <strong>{{ "{:,.0f}".format(summary.total_value) }} VNĐ</strong>
+        </div>
+    </header>
 
-    </div>
-
-    <a
-        class="btn btn-primary dashboard-add-btn"
-        href="{{ url_for('assets.list_assets') }}#asset-form"
-    >
-        <i class="bi bi-plus-lg"></i>
-        Thêm tài sản
-    </a>
-
-</div>
-
-
-<!-- =====================================================
-     STATISTICS
-     ===================================================== -->
-
-<div class="dashboard-stat-grid">
-
-    <!-- Tổng tài sản -->
-
-    <div class="dashboard-stat-card">
-
-        <div class="stat-top">
-
-            <div class="stat-icon stat-icon-purple">
-                <i class="bi bi-box-seam"></i>
+    <section class="overview-stat-grid" aria-label="Chỉ số tài sản">
+        <article class="overview-stat-card overview-stat-total">
+            <span class="overview-stat-icon"><i class="bi bi-grid-1x2"></i></span>
+            <div>
+                <span class="overview-stat-label">Tổng tài sản</span>
+                <strong>{{ summary.total_assets }}</strong>
             </div>
-
-            <span class="stat-tag">
-                Tổng
-            </span>
-
-        </div>
-
-        <div class="stat-info">
-
-            <span class="stat-label">
-                Tổng số tài sản
-            </span>
-
-            <strong class="stat-number">
-                {{ summary.total_assets }}
-            </strong>
-
-            <span class="stat-description">
-                Tài sản đang được quản lý
-            </span>
-
-        </div>
-
-    </div>
-
-
-    <!-- Đang sử dụng -->
-
-    <div class="dashboard-stat-card">
-
-        <div class="stat-top">
-
-            <div class="stat-icon stat-icon-green">
-                <i class="bi bi-check-circle"></i>
+        </article>
+        <article class="overview-stat-card overview-stat-active">
+            <span class="overview-stat-icon"><i class="bi bi-check2"></i></span>
+            <div>
+                <span class="overview-stat-label">Đang sử dụng</span>
+                <strong>{{ summary.active_assets }}</strong>
             </div>
-
-            <span class="stat-tag">
-                Hoạt động
-            </span>
-
-        </div>
-
-        <div class="stat-info">
-
-            <span class="stat-label">
-                Đang sử dụng
-            </span>
-
-            <strong class="stat-number">
-                {{ summary.active_assets }}
-            </strong>
-
-            <span class="stat-description">
-                Đang hoạt động bình thường
-            </span>
-
-        </div>
-
-    </div>
-
-
-    <!-- Sửa chữa -->
-
-    <div class="dashboard-stat-card">
-
-        <div class="stat-top">
-
-            <div class="stat-icon stat-icon-orange">
-                <i class="bi bi-wrench-adjustable"></i>
+        </article>
+        <article class="overview-stat-card overview-stat-repair">
+            <span class="overview-stat-icon"><i class="bi bi-wrench"></i></span>
+            <div>
+                <span class="overview-stat-label">Đang sửa chữa</span>
+                <strong>{{ summary.repair_assets }}</strong>
             </div>
-
-            <span class="stat-tag">
-                Theo dõi
-            </span>
-
-        </div>
-
-        <div class="stat-info">
-
-            <span class="stat-label">
-                Đang sửa chữa
-            </span>
-
-            <strong class="stat-number">
-                {{ summary.repair_assets }}
-            </strong>
-
-            <span class="stat-description">
-                Tài sản cần xử lý
-            </span>
-
-        </div>
-
-    </div>
-
-
-    <!-- Thanh lý -->
-
-    <div class="dashboard-stat-card">
-
-        <div class="stat-top">
-
-            <div class="stat-icon stat-icon-red">
-                <i class="bi bi-trash3"></i>
+        </article>
+        <article class="overview-stat-card overview-stat-disposal">
+            <span class="overview-stat-icon"><i class="bi bi-exclamation-triangle"></i></span>
+            <div>
+                <span class="overview-stat-label">Chờ thanh lý</span>
+                <strong>{{ summary.disposal_assets }}</strong>
             </div>
-
-            <span class="stat-tag">
-                Xử lý
-            </span>
-
-        </div>
-
-        <div class="stat-info">
-
-            <span class="stat-label">
-                Tài sản thanh lý
-            </span>
-
-            <strong class="stat-number">
-                {{ summary.disposal_assets }}
-            </strong>
-
-            <span class="stat-description">
-                Đã xác nhận xử lý
-            </span>
-
-        </div>
-
-    </div>
-
-
-    <!-- Giá trị -->
-
-    <div class="dashboard-stat-card dashboard-value-card">
-
-        <div class="stat-top">
-
-            <div class="stat-icon stat-icon-blue">
-                <i class="bi bi-currency-dollar"></i>
-            </div>
-
-            <span class="stat-tag">
-                Giá trị
-            </span>
-
-        </div>
-
-        <div class="stat-info">
-
-            <span class="stat-label">
-                Tổng giá trị tài sản
-            </span>
-
-            <strong class="stat-number stat-money">
-                {{ "{:,.0f}".format(summary.total_value) }}
-            </strong>
-
-            <span class="stat-description">
-                Đơn vị: VNĐ
-            </span>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<!-- =====================================================
-     MAIN DASHBOARD
-     ===================================================== -->
-
-<div class="dashboard-content-grid">
-
-
-    <!-- ================= PHÒNG BAN ================= -->
-
-    <section class="card dashboard-panel">
-
-        <div class="dashboard-panel-header">
-
-            <div class="panel-title">
-
-                <div class="panel-icon">
-                    <i class="bi bi-building"></i>
-                </div>
-
-                <div>
-                    <h3>Phân bổ theo phòng ban</h3>
-                    <p>
-                        Số lượng và giá trị tài sản theo đơn vị
-                    </p>
-                </div>
-
-            </div>
-
-            <span class="panel-badge">
-                {{ summary.department_rows|length }} phòng ban
-            </span>
-
-        </div>
-
-
-        <div class="table-wrap dashboard-table">
-
-            <table>
-
-                <thead>
-
-                    <tr>
-                        <th>Phòng ban</th>
-                        <th>Số lượng</th>
-                        <th>Giá trị</th>
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    {% for row in summary.department_rows %}
-
-                    <tr>
-
-                        <td>
-                            <div class="table-name">
-                                <div class="table-avatar">
-                                    <i class="bi bi-building"></i>
-                                </div>
-
-                                <span>
-                                    {{ row.name }}
-                                </span>
-                            </div>
-                        </td>
-
-                        <td>
-                            <strong>
-                                {{ row.count }}
-                            </strong>
-                        </td>
-
-                        <td>
-                            <span class="value-text">
-                                {{ "{:,.0f}".format(row.value) }} VNĐ
-                            </span>
-                        </td>
-
-                    </tr>
-
-                    {% else %}
-
-                    <tr>
-                        <td colspan="3">
-
-                            <div class="dashboard-empty">
-                                <i class="bi bi-inbox"></i>
-                                <span>
-                                    Không có dữ liệu phòng ban.
-                                </span>
-                            </div>
-
-                        </td>
-                    </tr>
-
-                    {% endfor %}
-
-                </tbody>
-
-            </table>
-
-        </div>
-
+        </article>
     </section>
 
-
-    <!-- ================= TÀI SẢN GẦN ĐÂY ================= -->
-
-    <section class="card dashboard-panel">
-
-        <div class="dashboard-panel-header">
-
-            <div class="panel-title">
-
-                <div class="panel-icon">
-                    <i class="bi bi-clock-history"></i>
+    <div class="overview-insights">
+        <section class="overview-panel overview-status-panel" aria-labelledby="status-title">
+            <h2 id="status-title">Thống kê tình trạng</h2>
+            <div class="overview-status-list">
+                {% for item in summary.status_rows %}
+                <div class="overview-status-row">
+                    <span class="overview-status-name">{{ item.label }}</span>
+                    <strong>{{ item.count }}</strong>
+                    <span
+                        class="overview-status-track"
+                        role="progressbar"
+                        aria-label="{{ item.label }}"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                        aria-valuenow="{{ item.percentage }}"
+                    >
+                        <span style="width: {{ item.percentage }}%"></span>
+                    </span>
                 </div>
-
-                <div>
-                    <h3>Tài sản gần đây</h3>
-                    <p>
-                        Những tài sản được cập nhật gần nhất
-                    </p>
-                </div>
-
+                {% endfor %}
             </div>
+        </section>
 
-            <a
-                href="{{ url_for('assets.list_assets') }}"
-                class="panel-link"
-            >
-                Xem tất cả
-                <i class="bi bi-arrow-right"></i>
+        <aside class="overview-panel overview-alert-panel" aria-labelledby="alerts-title">
+            <h2 id="alerts-title"><i class="bi bi-exclamation-triangle"></i> Cần chú ý</h2>
+            <ul>
+                <li>
+                    <a href="{{ url_for('repair.list_repairs') }}">
+                        {{ summary.pending_repairs }} yêu cầu sửa chữa đang chờ xử lý.
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('disposal.list_disposals') }}">
+                        {{ summary.pending_disposals }} đề nghị thanh lý đang chờ phê duyệt.
+                    </a>
+                </li>
+                {% if not summary.pending_repairs and not summary.pending_disposals %}
+                <li>Hiện không có yêu cầu nào cần xử lý.</li>
+                {% endif %}
+            </ul>
+        </aside>
+    </div>
+
+    <section class="overview-panel overview-recent-panel" aria-labelledby="recent-assets-title">
+        <div class="overview-recent-heading">
+            <h2 id="recent-assets-title">Tài sản được ghi nhận gần đây</h2>
+            <a href="{{ url_for('assets.list_assets') }}">
+                Xem tất cả <i class="bi bi-arrow-right"></i>
             </a>
-
         </div>
-
-
-        <div class="table-wrap dashboard-table">
-
-            <table>
-
+        <div class="overview-table-wrap">
+            <table class="overview-table">
                 <thead>
-
                     <tr>
                         <th>Mã tài sản</th>
                         <th>Tên tài sản</th>
+                        <th>Vị trí</th>
                         <th>Trạng thái</th>
                     </tr>
-
                 </thead>
-
                 <tbody>
-
                     {% for item in summary.recent_assets %}
-
                     <tr>
-
+                        <td>{{ item.asset_code }}</td>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.location }}</td>
                         <td>
-                            <span class="asset-code">
-                                {{ item.asset_code }}
+                            <span class="overview-status-badge overview-badge-{{ item.status }}">
+                                {{ item.status_label }}
                             </span>
                         </td>
-
-                        <td>
-                            <strong class="asset-name">
-                                {{ item.name }}
-                            </strong>
-                        </td>
-
-                        <td>
-
-                            <span class="badge status-{{ item.status }}">
-                                {{ item.status }}
-                            </span>
-
-                        </td>
-
                     </tr>
-
                     {% else %}
-
                     <tr>
-                        <td colspan="3">
-
-                            <div class="dashboard-empty">
-                                <i class="bi bi-inbox"></i>
-                                <span>
-                                    Không có dữ liệu mới nhất.
-                                </span>
-                            </div>
-
+                        <td class="overview-empty" colspan="4">
+                            Chưa có tài sản nào được ghi nhận.
                         </td>
                     </tr>
-
                     {% endfor %}
-
                 </tbody>
-
             </table>
-
         </div>
-
     </section>
-
-</div>
-
+</section>
 {% endblock %}

@@ -4,7 +4,7 @@ import re
 
 import requests
 
-from app.models import Asset, db
+from app.models import Asset, Disposal, Inventory, Repair, db
 
 
 def test_dashboard_page_renders_vietnamese_metrics(authenticated_client):
@@ -12,8 +12,11 @@ def test_dashboard_page_renders_vietnamese_metrics(authenticated_client):
     response = authenticated_client.get("/dashboard")
     assert response.status_code == 200
     page = response.get_data(as_text=True)
-    assert "Tổng số tài sản" in page
+    assert "Tổng tài sản" in page
     assert "Tổng giá trị tài sản" in page
+    assert "Thống kê tình trạng" in page
+    assert "Cần chú ý" in page
+    assert "Vị trí" in page
 
 
 def test_ai_chat_page_is_available(authenticated_client):
@@ -115,9 +118,33 @@ def test_ai_report_page_has_statistical_and_analysis_sections(authenticated_clie
     assert "Phân tích của AI" in page
 
 
-def test_ai_report_returns_database_metrics_and_discloses_missing_key(
-    authenticated_client,
+def test_ai_report_uses_local_provider_without_api_key(
+    app, authenticated_client, monkeypatch
 ):
+    app.config["LLM_API_BASE_URL"] = "http://localhost:11434/v1/chat/completions"
+
+    class FakeResponse:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {
+                "choices": [
+                    {
+                        "message": {
+                            "content": (
+                                '{"summary":"Tóm tắt","observations":[],'
+                                '"recommendations":[]}'
+                            )
+                        }
+                    }
+                ]
+            }
+
+    monkeypatch.setattr(
+        "app.llm.llm_service.requests.post",
+        lambda *args, **kwargs: FakeResponse(),
+    )
     response = authenticated_client.post(
         "/ai/report", json={"report_type": "overview"}
     )
@@ -125,8 +152,7 @@ def test_ai_report_returns_database_metrics_and_discloses_missing_key(
     assert response.status_code == 200
     result = response.get_json()
     assert result["stats"]["total_assets"] == 1
-    assert "API key chưa được cấu hình" in result["analysis"]
-    assert "Demo AI response" not in result["analysis"]
+    assert '"summary": "Tóm tắt"' in result["analysis"]
 
 
 def test_ai_report_rejects_unknown_report_type(authenticated_client):
@@ -156,6 +182,79 @@ def test_reports_count_assets_with_the_disposal_status(
     assert response.status_code == 200
     assert match is not None
     assert match.group(1) == "1"
+
+
+def test_reports_translate_workflow_statuses_and_count_active_repairs(
+    app, authenticated_client
+):
+    from datetime import date
+
+    with app.app_context():
+        asset = Asset.query.filter_by(asset_code="TEST-001").one()
+        db.session.add_all(
+            [
+                Repair(
+                    asset_id=asset.id,
+                    request_date=date(2026, 10, 1),
+                    status="pending",
+                    description="Chờ xử lý",
+                ),
+                Repair(
+                    asset_id=asset.id,
+                    request_date=date(2026, 10, 2),
+                    status="in_progress",
+                    description="Đang xử lý",
+                ),
+                Repair(
+                    asset_id=asset.id,
+                    request_date=date(2026, 10, 3),
+                    status="completed",
+                    description="Đã xong",
+                ),
+                Disposal(
+                    asset_id=asset.id,
+                    disposal_date=date(2026, 10, 4),
+                    reason="Chờ duyệt",
+                    status="requested",
+                ),
+                Disposal(
+                    asset_id=asset.id,
+                    disposal_date=date(2026, 10, 5),
+                    reason="Đã duyệt",
+                    status="approved",
+                ),
+                Disposal(
+                    asset_id=asset.id,
+                    disposal_date=date(2026, 10, 6),
+                    reason="Từ chối",
+                    status="rejected",
+                ),
+                Inventory(
+                    name="Đang thực hiện",
+                    start_date=date(2026, 10, 7),
+                    status="pending",
+                ),
+                Inventory(
+                    name="Hoàn thành",
+                    start_date=date(2026, 10, 8),
+                    status="completed",
+                ),
+            ]
+        )
+        db.session.commit()
+
+    response = authenticated_client.get("/reports")
+    page = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert "Chờ xử lý" in page
+    assert "Đang sửa chữa" in page
+    assert "Hoàn thành" in page
+    assert "Chờ duyệt" in page
+    assert "Đã duyệt" in page
+    assert "Từ chối" in page
+    assert "Đang thực hiện" in page
+    assert "status-{{" not in page
 
 
 def test_login_page_renders_and_session_can_login(client):
