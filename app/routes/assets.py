@@ -46,9 +46,19 @@ def _validate_asset_form(form, asset=None):
         value = float(form.get("value") or 0)
     except (TypeError, ValueError):
         return "Danh mục, phòng ban hoặc giá trị tài sản không hợp lệ."
+    try:
+        useful_life_years = (
+            int(form["useful_life_years"])
+            if form.get("useful_life_years")
+            else None
+        )
+    except ValueError:
+        return "Thời gian sử dụng dự kiến phải là số năm hợp lệ."
 
     if value < 0:
         return "Giá trị tài sản không được âm."
+    if useful_life_years is not None and not 1 <= useful_life_years <= 100:
+        return "Thời gian sử dụng dự kiến phải từ 1 đến 100 năm."
     if not math.isfinite(value):
         return "Giá trị tài sản không hợp lệ."
     purchase_date = form.get("purchase_date")
@@ -88,6 +98,11 @@ def _apply_form(asset, form):
     )
 
     asset.value = float(form.get("value") or 0)
+    asset.useful_life_years = (
+        int(form["useful_life_years"])
+        if form.get("useful_life_years")
+        else None
+    )
     asset.status = form.get("status") or "active"
     asset.location = (form.get("location") or "").strip() or None
     asset.notes = (form.get("notes") or "").strip() or None

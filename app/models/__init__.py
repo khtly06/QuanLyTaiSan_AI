@@ -6,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 from app.models.asset import Asset
+from app.models.ai_report import AIReport
 from app.models.category import Category
 from app.models.department import Department
 from app.models.disposal import Disposal
@@ -16,6 +17,7 @@ from app.models.user import User
 
 __all__ = [
     "db",
+    "AIReport",
     "Asset",
     "Category",
     "Department",

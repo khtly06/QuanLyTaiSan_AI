@@ -19,6 +19,19 @@ def test_dashboard_page_renders_vietnamese_metrics(authenticated_client):
     assert "Vị trí" in page
 
 
+def test_asset_page_shows_status_donut_chart_and_total_value(authenticated_client):
+    response = authenticated_client.get("/assets")
+    page = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert "Phân bổ theo trạng thái" in page
+    assert 'class="asset-donut"' in page
+    assert "Đang sử dụng" in page
+    assert "Đang sửa chữa" in page
+    assert "Thanh lý" in page
+    assert "Tổng giá trị tài sản" in page
+
+
 def test_ai_chat_page_is_available(authenticated_client):
     """AI chat page should be accessible to logged-in users and not require direct LLM calls from the browser."""
     response = authenticated_client.get("/ai/chat")
@@ -26,6 +39,41 @@ def test_ai_chat_page_is_available(authenticated_client):
     page = response.get_data(as_text=True)
     assert "Trợ lý AI" in page
     assert "Câu hỏi" in page
+
+
+def test_ai_report_page_explains_reference_workflows_and_completed_inventory(
+    app, authenticated_client
+):
+    from datetime import date
+
+    from app.models import Inventory, db
+
+    with app.app_context():
+        db.session.add_all(
+            [
+                Inventory(
+                    name="Đợt đang làm",
+                    start_date=date(2026, 10, 1),
+                    status="pending",
+                ),
+                Inventory(
+                    name="Đợt đã xong",
+                    start_date=date(2026, 9, 1),
+                    status="completed",
+                ),
+            ]
+        )
+        db.session.commit()
+
+    response = authenticated_client.get("/ai/report")
+    page = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert "Kết quả AI – Tham khảo" in page
+    assert "Tóm tắt tình trạng theo phòng ban" in page
+    assert "Gợi ý sửa chữa hoặc thay thế" in page
+    assert "Đợt đã xong" in page
+    assert "Đợt đang làm" not in page
 
 
 def test_ai_chat_returns_answer_when_provider_is_configured(
@@ -118,6 +166,21 @@ def test_ai_report_page_has_statistical_and_analysis_sections(authenticated_clie
     assert "Phân tích của AI" in page
 
 
+def test_system_settings_show_provider_without_exposing_api_key(
+    app, authenticated_client
+):
+    app.config["LLM_API_KEY"] = "test-secret-gemini-key"
+
+    response = authenticated_client.get("/settings")
+    page = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert "Nhà cung cấp" in page
+    assert "Đã cấu hình" in page
+    assert "test-secret-gemini-key" not in page
+    assert "Lưu thay đổi" not in page
+
+
 def test_ai_report_uses_local_provider_without_api_key(
     app, authenticated_client, monkeypatch
 ):
@@ -182,6 +245,19 @@ def test_reports_count_assets_with_the_disposal_status(
     assert response.status_code == 200
     assert match is not None
     assert match.group(1) == "1"
+
+
+def test_reports_render_department_and_category_tables(authenticated_client):
+    response = authenticated_client.get("/reports")
+    page = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert "<th>Phòng ban</th>" in page
+    assert "<th>Loại tài sản</th>" in page
+    assert "<th>Giá trị</th>" in page
+    assert "<td>Phòng A</td>" in page
+    assert "Thiết bị" in page
+    assert "report-column-chart" not in page
 
 
 def test_reports_translate_workflow_statuses_and_count_active_repairs(

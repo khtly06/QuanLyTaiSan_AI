@@ -51,9 +51,12 @@ def _ensure_seed_data(app):
             else "TIMESTAMP"
         )
         additive_columns = {
+            "assets": {"useful_life_years": "INTEGER"},
             "inventory": {"created_by": "VARCHAR(120)"},
             "transfers": {"performed_by": "VARCHAR(120)"},
             "inventory_details": {
+                "expected_location": "VARCHAR(200)",
+                "actual_location": "VARCHAR(200)",
                 "checked_by": "VARCHAR(120)",
                 "checked_at": timestamp_type,
             },
@@ -167,7 +170,11 @@ def create_app(test_config=None):
                 return jsonify({"message": "Phiên đăng nhập không còn hợp lệ."}), 401
             return redirect(url_for("auth.login"))
 
-        if endpoint in {"auth.users", "auth.settings"} and not user.is_admin:
+        if endpoint in {
+            "auth.users",
+            "auth.settings",
+            "auth.toggle_user_active",
+        } and not user.is_admin:
             abort(403)
 
         if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
@@ -207,6 +214,12 @@ def create_app(test_config=None):
         return {
             "current_user": user,
             "is_admin_user": bool(user and user.is_admin),
+            "can_manage_records": bool(
+                user and user.role in {"admin", "manager"}
+            ),
+            "can_record_inventory": bool(
+                user and user.role in {"admin", "manager", "inspector"}
+            ),
             "user_display_name": user.full_name if user and user.full_name else (user.username if user else "Khách"),
             "user_role_label": user.display_role if user else "Khách",
         }

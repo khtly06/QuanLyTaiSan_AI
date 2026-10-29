@@ -88,6 +88,12 @@ def test_startup_adds_workflow_columns_without_losing_existing_rows(tmp_path):
         assert {"checked_by", "checked_at"}.issubset(
             {column["name"] for column in inspector.get_columns("inventory_details")}
         )
+        assert {"expected_location", "actual_location"}.issubset(
+            {column["name"] for column in inspector.get_columns("inventory_details")}
+        )
+        assert "useful_life_years" in {
+            column["name"] for column in inspector.get_columns("assets")
+        }
         assert "inventory_observations" in inspector.get_table_names()
         assert {"requested_by", "updated_by"}.issubset(
             {column["name"] for column in inspector.get_columns("repairs")}

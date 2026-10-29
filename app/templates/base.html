@@ -65,12 +65,7 @@
         <!-- MENU -->
         <nav class="nav-group">
 
-            <div class="nav-label">
-                MENU
-            </div>
-
-
-            <!-- ================= TỔNG QUAN ================= -->
+            <div class="nav-label">TỔNG QUAN</div>
 
             <a
                 href="{{ url_for('dashboard.dashboard') }}"
@@ -81,60 +76,25 @@
             </a>
 
 
-            <!-- ================= TÀI SẢN ================= -->
+            <div class="nav-label">QUẢN LÝ TÀI SẢN</div>
 
             <a
                 href="{{ url_for('assets.list_assets') }}"
-                class="nav-item {% if request.path.startswith('/assets') %}active child-open{% endif %}"
+                class="nav-item {% if request.path.startswith('/assets') %}active{% endif %}"
             >
                 <i class="bi bi-box-seam"></i>
                 <span>Tài sản</span>
             </a>
 
-            <div class="child-list">
+            <div class="nav-label">NGHIỆP VỤ</div>
 
-                <a href="{{ url_for('assets.list_assets') }}">
-                    <i class="bi bi-list-ul"></i>
-                    Danh sách tài sản
-                </a>
-
-                <a href="{{ url_for('assets.list_assets') }}#asset-form">
-                    <i class="bi bi-plus-circle"></i>
-                    Thêm tài sản
-                </a>
-
-                <a href="{{ url_for('assets.list_assets') }}#asset-list">
-                    <i class="bi bi-search"></i>
-                    Tra cứu tài sản
-                </a>
-
-            </div>
-
-           <!-- ================= KIỂM KÊ ================= -->
-
-<a
-    href="{{ url_for('inventory.list_inventory') }}"
-    class="nav-item {% if request.path.startswith('/inventory') %}active child-open{% endif %}"
->
-    <i class="bi bi-clipboard-check"></i>
-    <span>Kiểm kê</span>
-</a>
-
-<div class="child-list">
-
-    <a href="{{ url_for('inventory.list_inventory') }}">
-        <i class="bi bi-clipboard"></i>
-        Đợt kiểm kê
-    </a>
-
-    <a href="{{ url_for('inventory.list_inventory') }}">
-        <i class="bi bi-check2-square"></i>
-        Ghi nhận kiểm kê
-    </a>
-
-</div>
-
-            <!-- ================= ĐIỀU CHUYỂN ================= -->
+            <a
+                href="{{ url_for('inventory.list_inventory') }}"
+                class="nav-item {% if request.path.startswith('/inventory') %}active{% endif %}"
+            >
+                <i class="bi bi-clipboard-check"></i>
+                <span>Kiểm kê</span>
+            </a>
 
             <a
                 href="{{ url_for('transfer.list_transfers') }}"
@@ -145,8 +105,6 @@
             </a>
 
 
-            <!-- ================= SỬA CHỮA ================= -->
-
             <a
                 href="{{ url_for('repair.list_repairs') }}"
                 class="nav-item {% if request.path.startswith('/repairs') %}active{% endif %}"
@@ -155,8 +113,6 @@
                 <span>Sửa chữa</span>
             </a>
 
-
-            <!-- ================= THANH LÝ ================= -->
 
             <a
                 href="{{ url_for('disposal.list_disposals') }}"
@@ -167,7 +123,7 @@
             </a>
 
 
-            <!-- ================= BÁO CÁO ================= -->
+            <div class="nav-label">BÁO CÁO & AI</div>
 
             <a
                 href="{{ url_for('reports.reports') }}"
@@ -177,10 +133,6 @@
                 <span>Báo cáo</span>
             </a>
 
-
-            <!-- ==================================================
-                 AI
-                 ================================================== -->
 
             <a
                 href="{{ url_for('ai.chat') }}"
@@ -198,15 +150,26 @@
                 <i class="bi bi-stars"></i>
                 <span>AI Báo cáo</span>
             </a>
-
-
-            <!-- ==================================================
-                 QUẢN TRỊ
-                 Chỉ ADMIN mới thấy
-                 ================================================== -->
+            {% if can_manage_records %}
+            <div class="nav-label">DỮ LIỆU NỀN</div>
+            <a
+                href="{{ url_for('categories.list_categories') }}"
+                class="nav-item {% if request.path.startswith('/categories') %}active{% endif %}"
+            >
+                <i class="bi bi-tags"></i>
+                <span>Danh mục</span>
+            </a>
+            <a
+                href="{{ url_for('departments.list_departments') }}"
+                class="nav-item {% if request.path.startswith('/departments') %}active{% endif %}"
+            >
+                <i class="bi bi-diagram-3"></i>
+                <span>Phòng ban</span>
+            </a>
+            {% endif %}
 
             {% if current_user and current_user.is_admin %}
-
+                <div class="nav-label">QUẢN TRỊ</div>
                 <a
                     href="{{ url_for('auth.users') }}"
                     class="nav-item {% if request.path == '/users' %}active{% endif %}"
@@ -275,18 +238,15 @@
 
             <div class="user-menu">
 
-                <div class="user-trigger">
+                <button
+                    type="button"
+                    class="user-trigger"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                    aria-label="Mở menu tài khoản"
+                >
 
-                    <button
-                        type="button"
-                        class="action-btn"
-                        aria-label="Thông báo"
-                    >
-                        <i class="bi bi-bell"></i>
-                    </button>
-
-
-                    <div class="user-avatar">
+                    <span class="user-avatar">
                         {{
                             (
                                 current_user.full_name[:1]
@@ -301,10 +261,9 @@
                                 )
                             ).upper()
                         }}
-                    </div>
+                    </span>
 
-
-                    <div class="user-meta">
+                    <span class="user-meta">
 
                         <strong>
                             {{
@@ -330,11 +289,11 @@
                             }}
                         </span>
 
-                    </div>
+                    </span>
 
                     <i class="bi bi-chevron-down"></i>
 
-                </div>
+                </button>
 
 
                 <!-- DROPDOWN -->

@@ -15,35 +15,70 @@
         <a class="btn btn-outline" href="{{ url_for('dashboard.dashboard') }}">
             <i class="bi bi-grid-1x2"></i> Dashboard
         </a>
+        {% if can_manage_records %}
         <a class="btn btn-primary" href="#asset-form">
             <i class="bi bi-plus-lg"></i> Thêm tài sản
         </a>
+        {% endif %}
     </div>
 </section>
 
-<div class="stat-grid compact">
-    <div class="card metric-card mini-metric">
-        <div class="mini-metric-icon"><i class="bi bi-boxes"></i></div>
-        <div><span class="metric-label">Tổng tài sản</span><strong>{{ total_assets }}</strong></div>
-    </div>
-    <div class="card metric-card mini-metric">
-        <div class="mini-metric-icon success"><i class="bi bi-check2-circle"></i></div>
-        <div><span class="metric-label">Đang sử dụng</span><strong>{{ active_assets }}</strong></div>
-    </div>
-    <div class="card metric-card mini-metric">
-        <div class="mini-metric-icon warning"><i class="bi bi-wrench-adjustable"></i></div>
-        <div><span class="metric-label">Đang sửa chữa</span><strong>{{ repair_assets }}</strong></div>
-    </div>
-    <div class="card metric-card mini-metric">
-        <div class="mini-metric-icon danger"><i class="bi bi-trash3"></i></div>
-        <div><span class="metric-label">Thanh lý</span><strong>{{ disposal_assets }}</strong></div>
-    </div>
-    <div class="card metric-card mini-metric">
-        <div class="mini-metric-icon info"><i class="bi bi-cash-stack"></i></div>
-        <div><span class="metric-label">Tổng giá trị</span><strong>{{ "{:,.0f}".format(total_value) }} ₫</strong></div>
-    </div>
-</div>
+{% set other_assets = [total_assets - active_assets - repair_assets - disposal_assets, 0]|max %}
+<section class="asset-overview" aria-label="Tổng quan tài sản">
+    <article class="card asset-chart-card">
+        <div class="card-header">
+            <div>
+                <h2>Phân bổ theo trạng thái</h2>
+                <p>Tỷ lệ tài sản theo tình trạng hiện tại.</p>
+            </div>
+            <span class="asset-chart-icon"><i class="bi bi-pie-chart"></i></span>
+        </div>
+        <div class="asset-chart-content">
+            <div
+                class="asset-donut"
+                aria-hidden="true"
+                style="--active-share: {{ (active_assets / total_assets * 100) if total_assets else 0 }}%; --repair-share: {{ (repair_assets / total_assets * 100) if total_assets else 0 }}%; --disposal-share: {{ (disposal_assets / total_assets * 100) if total_assets else 0 }}%;"
+            >
+                <div class="asset-donut-center">
+                    <strong>{{ total_assets }}</strong>
+                    <span>Tài sản</span>
+                </div>
+            </div>
+            <ul class="asset-chart-legend">
+                <li>
+                    <span class="asset-legend-dot active"></span>
+                    <span class="asset-legend-label">Đang sử dụng <small>{{ "%.0f"|format(active_assets / total_assets * 100 if total_assets else 0) }}%</small></span>
+                    <strong>{{ active_assets }}</strong>
+                </li>
+                <li>
+                    <span class="asset-legend-dot repair"></span>
+                    <span class="asset-legend-label">Đang sửa chữa <small>{{ "%.0f"|format(repair_assets / total_assets * 100 if total_assets else 0) }}%</small></span>
+                    <strong>{{ repair_assets }}</strong>
+                </li>
+                <li>
+                    <span class="asset-legend-dot disposal"></span>
+                    <span class="asset-legend-label">Thanh lý <small>{{ "%.0f"|format(disposal_assets / total_assets * 100 if total_assets else 0) }}%</small></span>
+                    <strong>{{ disposal_assets }}</strong>
+                </li>
+                {% if other_assets %}
+                <li>
+                    <span class="asset-legend-dot other"></span>
+                    <span class="asset-legend-label">Trạng thái khác <small>{{ "%.0f"|format(other_assets / total_assets * 100 if total_assets else 0) }}%</small></span>
+                    <strong>{{ other_assets }}</strong>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </article>
+    <article class="card asset-value-card">
+        <div class="asset-value-icon"><i class="bi bi-cash-stack"></i></div>
+        <span class="metric-label">Tổng giá trị tài sản</span>
+        <strong class="asset-value">{{ "{:,.0f}".format(total_value) }} ₫</strong>
+        <p>Giá trị ghi nhận của {{ total_assets }} tài sản trong hệ thống.</p>
+    </article>
+</section>
 
+{% if can_manage_records %}
 <section class="card form-panel asset-form-card" id="asset-form">
     <div class="card-header">
         <div>
@@ -86,6 +121,10 @@
                 <input id="purchase_date" type="date" name="purchase_date">
             </div>
             <div class="form-field">
+                <label for="useful_life_years">Thời gian sử dụng dự kiến (năm)</label>
+                <input id="useful_life_years" type="number" min="1" max="100" name="useful_life_years">
+            </div>
+            <div class="form-field">
                 <label for="value">Giá trị (VNĐ)</label>
                 <input id="value" type="number" min="0" step="1000" name="value" value="0">
             </div>
@@ -112,6 +151,7 @@
         </div>
     </form>
 </section>
+{% endif %}
 
 <section class="card table-card asset-list-card" id="asset-list">
     <div class="card-header list-header">
@@ -187,6 +227,7 @@
                     <td>
                         <div class="row-actions">
                             <a class="icon-btn" href="{{ url_for('assets.get_asset', asset_id=asset.id) }}" title="Xem chi tiết"><i class="bi bi-eye"></i></a>
+                            {% if can_manage_records %}
                             <button class="icon-btn edit-btn" type="button" title="Sửa tài sản"
                                     data-edit-asset
                                     data-id="{{ asset.id }}"
@@ -196,6 +237,7 @@
                                     data-department="{{ asset.department_id }}"
                                     data-user="{{ asset.user_name or '' }}"
                                     data-purchase="{{ asset.purchase_date or '' }}"
+                                    data-useful-life="{{ asset.useful_life_years or '' }}"
                                     data-value="{{ asset.value or 0 }}"
                                     data-status="{{ asset.status }}"
                                     data-location="{{ asset.location or '' }}"
@@ -206,6 +248,7 @@
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button class="icon-btn danger" type="submit" title="Xóa tài sản"><i class="bi bi-trash3"></i></button>
                             </form>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>
@@ -225,6 +268,7 @@
     </div>
 </section>
 
+{% if can_manage_records %}
 <div class="modal" id="editAssetModal" aria-hidden="true">
     <div class="modal-backdrop" data-close-modal></div>
     <section class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="editAssetTitle">
@@ -268,6 +312,10 @@
                     <input id="edit_purchase_date" type="date" name="purchase_date">
                 </div>
                 <div class="form-field">
+                    <label for="edit_useful_life_years">Thời gian sử dụng dự kiến (năm)</label>
+                    <input id="edit_useful_life_years" type="number" min="1" max="100" name="useful_life_years">
+                </div>
+                <div class="form-field">
                     <label for="edit_value">Giá trị (VNĐ)</label>
                     <input id="edit_value" type="number" min="0" step="1000" name="value">
                 </div>
@@ -293,4 +341,5 @@
         </form>
     </section>
 </div>
+{% endif %}
 {% endblock %}

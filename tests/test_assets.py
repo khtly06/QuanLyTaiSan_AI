@@ -17,13 +17,16 @@ def _asset_form(**overrides):
 
 
 def test_asset_creation_persists_valid_data(app, authenticated_client):
-    response = authenticated_client.post("/assets", data=_asset_form())
+    response = authenticated_client.post(
+        "/assets", data=_asset_form(useful_life_years="8")
+    )
 
     assert response.status_code == 302
     with app.app_context():
         asset = Asset.query.filter_by(asset_code="TEST-002").one()
         assert asset.name == "Máy chiếu mới"
         assert asset.value == 2500000
+        assert asset.useful_life_years == 8
 
 
 def test_asset_creation_rejects_duplicate_code(app, authenticated_client):
@@ -38,6 +41,16 @@ def test_asset_creation_rejects_duplicate_code(app, authenticated_client):
 
 def test_asset_creation_rejects_negative_value(app, authenticated_client):
     response = authenticated_client.post("/assets", data=_asset_form(value="-1"))
+
+    assert response.status_code == 302
+    with app.app_context():
+        assert Asset.query.filter_by(asset_code="TEST-002").first() is None
+
+
+def test_asset_creation_rejects_invalid_useful_life(app, authenticated_client):
+    response = authenticated_client.post(
+        "/assets", data=_asset_form(useful_life_years="0")
+    )
 
     assert response.status_code == 302
     with app.app_context():

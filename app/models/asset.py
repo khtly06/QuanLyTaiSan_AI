@@ -23,6 +23,7 @@ class Asset(db.Model):
     )
     user_name = db.Column(db.String(120), nullable=True)
     purchase_date = db.Column(db.Date, nullable=True)
+    useful_life_years = db.Column(db.Integer, nullable=True)
     value = db.Column(db.Float, default=0.0)
     status = db.Column(db.String(50), default="active")
     location = db.Column(db.String(200), nullable=True)

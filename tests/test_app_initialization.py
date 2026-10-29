@@ -18,6 +18,14 @@ def test_startup_does_not_create_default_users_or_demo_data(tmp_path):
             "INITIAL_ADMIN_EMAIL": "",
             "INITIAL_ADMIN_PASSWORD": "",
             "INITIAL_ADMIN_FULL_NAME": "",
+            "INITIAL_INSPECTOR_USERNAME": "",
+            "INITIAL_INSPECTOR_EMAIL": "",
+            "INITIAL_INSPECTOR_PASSWORD": "",
+            "INITIAL_INSPECTOR_FULL_NAME": "",
+            "INITIAL_STAFF_USERNAME": "",
+            "INITIAL_STAFF_EMAIL": "",
+            "INITIAL_STAFF_PASSWORD": "",
+            "INITIAL_STAFF_FULL_NAME": "",
         }
     )
 

@@ -43,6 +43,8 @@ class InventoryDetail(db.Model):
     asset_id = db.Column(db.Integer, db.ForeignKey("assets.id"), nullable=False)
     expected_status = db.Column(db.String(50), nullable=True)
     actual_status = db.Column(db.String(50), nullable=True)
+    expected_location = db.Column(db.String(200), nullable=True)
+    actual_location = db.Column(db.String(200), nullable=True)
     variance_note = db.Column(db.Text, nullable=True)
     checked_by = db.Column(db.String(120), nullable=True)
     checked_at = db.Column(db.DateTime, nullable=True)

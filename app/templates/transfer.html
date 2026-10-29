@@ -4,42 +4,46 @@
 {% block content %}
 <div class="page-header">
     <div class="page-heading"><i class="bi bi-arrow-left-right"></i><div><h1>Điều chuyển tài sản</h1><p class="page-description">Ghi nhận lịch sử bàn giao tài sản giữa các phòng ban.</p></div></div>
+    {% if can_manage_records %}
     <div class="header-actions"><a class="btn btn-primary" href="#transfer-form"><i class="bi bi-plus-lg"></i> Ghi nhận điều chuyển</a></div>
+    {% endif %}
 </div>
 {% if error %}<div class="alert-box error">{{ error }}</div>{% endif %}
+{% if can_manage_records %}
 <div class="card form-panel" id="transfer-form">
     <div class="card-header"><div><h3>Ghi nhận điều chuyển</h3><p>Kiểm tra kỹ đơn vị nguồn và đích trước khi lưu.</p></div><i class="bi bi-sign-turn-right"></i></div>
     <form method="post" action="/transfers" data-confirm="Bạn có muốn ghi nhận lần điều chuyển này không?">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-grid">
             <div class="form-field">
-                <label>Tài sản</label>
-                <select name="asset_id" required>
+                <label for="transfer-asset">Tài sản</label>
+                <select id="transfer-asset" name="asset_id" required>
                     <option value="">-- Chọn --</option>
-                    {% for asset in assets %}<option value="{{ asset.id }}">{{ asset.name }}</option>{% endfor %}
+                    {% for asset in assets %}<option value="{{ asset.id }}">{{ asset.asset_code }} · {{ asset.name }}</option>{% endfor %}
                 </select>
             </div>
             <div class="form-field">
-                <label>Phòng ban hiện tại</label>
-                <select name="from_department_id" required>
+                <label for="transfer-from-department">Phòng ban hiện tại</label>
+                <select id="transfer-from-department" name="from_department_id" required>
                     <option value="">-- Chọn --</option>
                     {% for department in departments %}<option value="{{ department.id }}">{{ department.name }}</option>{% endfor %}
                 </select>
             </div>
             <div class="form-field">
-                <label>Phòng ban mới</label>
-                <select name="to_department_id" required>
+                <label for="transfer-to-department">Phòng ban mới</label>
+                <select id="transfer-to-department" name="to_department_id" required>
                     <option value="">-- Chọn --</option>
                     {% for department in departments %}<option value="{{ department.id }}">{{ department.name }}</option>{% endfor %}
                 </select>
             </div>
-            <div class="form-field"><label>Ngày điều chuyển</label><input type="date" name="transfer_date"></div>
-            <div class="form-field"><label>Lý do</label><input name="reason" placeholder="Ví dụ: Phân công lại phòng sử dụng"></div>
-            <div class="form-field"><label>Ghi chú</label><input name="notes" placeholder="Thông tin bàn giao bổ sung"></div>
+            <div class="form-field"><label for="transfer-date">Ngày điều chuyển</label><input id="transfer-date" type="date" name="transfer_date" required></div>
+            <div class="form-field"><label for="transfer-reason">Lý do</label><input id="transfer-reason" name="reason" placeholder="Ví dụ: Phân công lại phòng sử dụng"></div>
+            <div class="form-field"><label for="transfer-notes">Ghi chú</label><input id="transfer-notes" name="notes" placeholder="Thông tin bàn giao bổ sung"></div>
         </div>
         <div class="header-actions" style="margin-top: 18px;"><button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i> Lưu điều chuyển</button></div>
     </form>
 </div>
+{% endif %}
 <div class="card table-card">
     <div class="card-header"><div><h3>Lịch sử điều chuyển</h3><p>Các lần bàn giao được ghi nhận mới nhất.</p></div><span class="record-count">{{ transfers|length }} bản ghi</span></div>
     <div class="table-wrap">

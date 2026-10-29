@@ -71,7 +71,11 @@ def list_inventory():
             created_by=current_user().full_name or current_user().username,
         )
         campaign.details = [
-            InventoryDetail(asset=asset, expected_status=asset.status)
+            InventoryDetail(
+                asset=asset,
+                expected_status=asset.status,
+                expected_location=asset.location,
+            )
             for asset in Asset.query.filter(Asset.status != "disposal").all()
         ]
         if not campaign.details:
@@ -113,8 +117,16 @@ def inventory_detail(inventory_id):
         actual_status = request.form.get("actual_status", "")
         if actual_status not in ACTUAL_STATUSES:
             abort(400, description="Tình trạng thực tế không hợp lệ.")
+        actual_location = (request.form.get("actual_location") or "").strip()
+        if (
+            detail.expected_location
+            and actual_status != "missing"
+            and not actual_location
+        ):
+            abort(400, description="Cần ghi vị trí thực tế để đối chiếu vị trí tài sản.")
 
         detail.actual_status = actual_status
+        detail.actual_location = actual_location or None
         detail.variance_note = (request.form.get("variance_note") or "").strip() or None
         user = current_user()
         detail.checked_by = user.full_name or user.username

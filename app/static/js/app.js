@@ -3,12 +3,20 @@ document.addEventListener('DOMContentLoaded', function () {
   const trigger = document.querySelector('.user-trigger');
   if (userMenu && trigger) {
     trigger.addEventListener('click', function (e) {
-      if (e.target.closest('.action-btn')) return;
       e.stopPropagation();
-      userMenu.classList.toggle('open');
+      const isOpen = userMenu.classList.toggle('open');
+      trigger.setAttribute('aria-expanded', String(isOpen));
     });
     document.addEventListener('click', function () {
       userMenu.classList.remove('open');
+      trigger.setAttribute('aria-expanded', 'false');
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') {
+        userMenu.classList.remove('open');
+        trigger.setAttribute('aria-expanded', 'false');
+        trigger.focus();
+      }
     });
   }
 
@@ -64,6 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
       department: document.getElementById('edit_department_id'),
       user: document.getElementById('edit_user_name'),
       purchase: document.getElementById('edit_purchase_date'),
+      usefulLife: document.getElementById('edit_useful_life_years'),
       value: document.getElementById('edit_value'),
       status: document.getElementById('edit_status'),
       location: document.getElementById('edit_location'),
@@ -77,6 +86,7 @@ document.addEventListener('DOMContentLoaded', function () {
       fields.department.value = button.dataset.department || '';
       fields.user.value = button.dataset.user || '';
       fields.purchase.value = button.dataset.purchase || '';
+      fields.usefulLife.value = button.dataset.usefulLife || '';
       fields.value.value = button.dataset.value || '0';
       fields.status.value = button.dataset.status || 'active';
       fields.location.value = button.dataset.location || '';
@@ -97,6 +107,12 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('[data-edit-asset]').forEach((button) => {
       button.addEventListener('click', () => openModal(button));
     });
+    const editId = new URLSearchParams(window.location.search).get('edit_id');
+    const requestedEditButton = editId
+      ? document.querySelector(`[data-edit-asset][data-id="${CSS.escape(editId)}"]`)
+      : null;
+    if (requestedEditButton) openModal(requestedEditButton);
+
     modal.querySelectorAll('[data-close-modal]').forEach((button) => {
       button.addEventListener('click', closeModal);
     });

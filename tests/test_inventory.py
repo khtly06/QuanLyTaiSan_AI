@@ -16,6 +16,12 @@ def test_inventory_creation_snapshots_assets_without_marking_them_missing(
     app, client
 ):
     _login(client, "test-manager")
+    with app.app_context():
+        from app.models import Asset
+
+        asset = Asset.query.one()
+        asset.location = "Phòng A - Kệ 1"
+        db.session.commit()
     response = client.post(
         "/inventory",
         data={"name": "Kiểm kê học kỳ", "start_date": "2026-10-26"},
@@ -27,6 +33,7 @@ def test_inventory_creation_snapshots_assets_without_marking_them_missing(
         detail = InventoryDetail.query.one()
         assert campaign.status == "pending"
         assert detail.expected_status == "active"
+        assert detail.expected_location == "Phòng A - Kệ 1"
         assert detail.actual_status is None
 
 
@@ -49,6 +56,7 @@ def test_inventory_requires_explicit_count_before_completion(app, client):
         data={
             "detail_id": str(detail_id),
             "actual_status": "missing",
+            "actual_location": "Phòng B",
             "variance_note": "Đã kiểm tra tại vị trí được phân công",
         },
     )
@@ -61,6 +69,7 @@ def test_inventory_requires_explicit_count_before_completion(app, client):
         detail = InventoryDetail.query.one()
         assert campaign.status == "completed"
         assert detail.actual_status == "missing"
+        assert detail.actual_location == "Phòng B"
         assert detail.checked_by == "Test Inspector"
         assert detail.checked_at is not None
         assert campaign.end_date == date.today()

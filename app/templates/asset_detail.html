@@ -12,7 +12,9 @@
     </div>
     <div class="header-actions">
         <a class="btn btn-outline" href="{{ url_for('assets.list_assets') }}"><i class="bi bi-arrow-left"></i> Danh sách</a>
-        <a class="btn btn-primary" href="{{ url_for('assets.list_assets') }}#asset-{{ asset.id }}"><i class="bi bi-pencil-square"></i> Sửa tài sản</a>
+        {% if can_manage_records %}
+        <a class="btn btn-primary" href="{{ url_for('assets.list_assets', edit_id=asset.id) }}#asset-{{ asset.id }}"><i class="bi bi-pencil-square"></i> Sửa tài sản</a>
+        {% endif %}
     </div>
 </section>
 
@@ -46,6 +48,7 @@
             <i class="bi bi-journal-text detail-icon"></i>
         </div>
         <div class="note-box">{{ asset.notes or 'Chưa có ghi chú cho tài sản này.' }}</div>
+        {% if can_manage_records %}
         <div class="detail-actions">
             <form method="post" action="{{ url_for('assets.delete_asset', asset_id=asset.id) }}"
                   data-confirm="Bạn có chắc muốn xóa tài sản {{ asset.asset_code }}? Thao tác này không thể hoàn tác.">
@@ -53,6 +56,7 @@
                 <button class="btn btn-danger" type="submit"><i class="bi bi-trash3"></i> Xóa tài sản</button>
             </form>
         </div>
+        {% endif %}
     </section>
 </div>
 {% endblock %}

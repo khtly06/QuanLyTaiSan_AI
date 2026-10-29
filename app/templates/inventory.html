@@ -4,21 +4,25 @@
 {% block content %}
 <div class="page-header">
     <div class="page-heading"><i class="bi bi-clipboard-check"></i><div><h1>Kiểm kê tài sản</h1><p class="page-description">Theo dõi các đợt đối chiếu tài sản và tiến độ thực hiện.</p></div></div>
+    {% if can_record_inventory %}
     <div class="header-actions"><a class="btn btn-primary" href="#inventory-form"><i class="bi bi-plus-lg"></i> Tạo đợt kiểm kê</a></div>
+    {% endif %}
 </div>
 {% if error %}<div class="alert-box error">{{ error }}</div>{% endif %}
+{% if can_record_inventory %}
 <div class="card form-panel" id="inventory-form">
     <div class="card-header"><div><h3>Tạo đợt kiểm kê mới</h3><p>Xác lập phạm vi thời gian cho lần kiểm kê tiếp theo.</p></div><i class="bi bi-calendar2-plus"></i></div>
     <form method="post" action="/inventory" data-confirm="Bạn có muốn tạo đợt kiểm kê này không?">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-grid">
-            <div class="form-field"><label>Tên đợt kiểm kê</label><input name="name" placeholder="Ví dụ: Kiểm kê đầu năm" required></div>
-            <div class="form-field"><label>Ngày bắt đầu</label><input type="date" name="start_date" required></div>
-            <div class="form-field"><label>Ngày kết thúc</label><input type="date" name="end_date"></div>
+            <div class="form-field"><label for="inventory-name">Tên đợt kiểm kê</label><input id="inventory-name" name="name" placeholder="Ví dụ: Kiểm kê đầu năm" required></div>
+            <div class="form-field"><label for="inventory-start-date">Ngày bắt đầu</label><input id="inventory-start-date" type="date" name="start_date" required></div>
+            <div class="form-field"><label for="inventory-end-date">Ngày kết thúc</label><input id="inventory-end-date" type="date" name="end_date"></div>
         </div>
         <div class="header-actions" style="margin-top: 18px;"><button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i> Lưu đợt kiểm kê</button></div>
     </form>
 </div>
+{% endif %}
 <div class="card table-card">
     <div class="card-header"><div><h3>Lịch sử kiểm kê</h3><p>Danh sách các đợt được ghi nhận gần đây.</p></div><span class="record-count">{{ inventory_rows|length }} đợt</span></div>
     <div class="table-wrap">

@@ -57,6 +57,87 @@ def test_inspector_can_record_inventory_but_cannot_mutate_assets(app, client):
     assert asset.status_code == 403
 
 
+def test_read_only_roles_do_not_see_unavailable_write_controls(client):
+    _login(client, "test-staff")
+
+    read_only_pages = (
+        ("/assets", "Thêm tài sản mới", 'action="/assets"'),
+        ("/inventory", "Tạo đợt kiểm kê mới", 'action="/inventory"'),
+        ("/transfers", "Ghi nhận điều chuyển", 'action="/transfers"'),
+        ("/repairs", "Gửi yêu cầu sửa chữa", 'action="/repairs"'),
+        ("/disposals", "Ghi nhận thanh lý", 'action="/disposals"'),
+        ("/categories", "Tạo danh mục mới", 'action="/categories"'),
+        ("/departments", "Thêm phòng ban", 'action="/departments"'),
+    )
+    for path, unavailable_action, unavailable_form in read_only_pages:
+        response = client.get(path)
+        assert response.status_code == 200
+        page = response.get_data(as_text=True)
+        assert unavailable_action not in page
+        assert unavailable_form not in page
+
+    for path, unavailable_controls in (
+        ("/inventory", ("name=\"name\"", "Lưu đợt kiểm kê")),
+        (
+            "/transfers",
+            ('name="from_department_id"', 'name="to_department_id"', "Lưu điều chuyển"),
+        ),
+        (
+            "/repairs",
+            ('name="request_date"', 'name="cost"', 'name="description"', "Gửi yêu cầu"),
+        ),
+        (
+            "/disposals",
+            ('name="disposal_date"', 'name="liquidation_value"', 'name="reason"', "Lưu hồ sơ"),
+        ),
+    ):
+        page = client.get(path).get_data(as_text=True)
+        for control in unavailable_controls:
+            assert control not in page
+
+
+def test_inspector_sees_only_inventory_write_controls(client):
+    _login(client, "test-inspector")
+
+    inventory_page = client.get("/inventory").get_data(as_text=True)
+    assets_page = client.get("/assets").get_data(as_text=True)
+    repairs_page = client.get("/repairs").get_data(as_text=True)
+
+    assert "Tạo đợt kiểm kê mới" in inventory_page
+    assert 'name="name"' in inventory_page
+    assert "Lưu đợt kiểm kê" in inventory_page
+    assert "Thêm tài sản mới" not in assets_page
+    assert "Gửi yêu cầu sửa chữa" not in repairs_page
+    assert 'name="request_date"' not in repairs_page
+    assert "Gửi yêu cầu" not in repairs_page
+
+
+def test_manager_can_generate_general_ai_report_but_not_admin_only_types(client):
+    _login(client, "test-manager")
+
+    response = client.get("/ai/report")
+    page = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert "Tóm tắt tình trạng theo phòng ban" in page
+    assert "Báo cáo kiểm kê" not in page
+    assert "Gợi ý sửa chữa hoặc thay thế" not in page
+    assert 'id="generate-report" type="button" disabled' not in page
+
+
+def test_manager_cannot_toggle_user_accounts(app, client):
+    _login(client, "test-manager")
+    with app.app_context():
+        target = User.query.filter_by(username="test-staff").one()
+        target_id = target.id
+
+    response = client.post(f"/users/{target_id}/toggle-active")
+
+    assert response.status_code == 403
+    with app.app_context():
+        assert User.query.filter_by(username="test-staff").one().is_active
+
+
 def test_staff_and_inspector_can_log_out(client):
     for username in ("test-staff", "test-inspector"):
         _login(client, username)

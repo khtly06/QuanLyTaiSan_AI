@@ -4,9 +4,12 @@
 {% block content %}
 <div class="page-header">
     <div class="page-heading"><i class="bi bi-wrench-adjustable-circle"></i><div><h1>Sửa chữa và bảo trì</h1><p class="page-description">Theo dõi yêu cầu sửa chữa, chi phí và tình trạng xử lý tài sản.</p></div></div>
+    {% if can_manage_records %}
     <div class="header-actions"><a class="btn btn-primary" href="#repair-form"><i class="bi bi-plus-lg"></i> Tạo yêu cầu</a></div>
+    {% endif %}
 </div>
 {% if error %}<div class="alert-box error">{{ error }}</div>{% endif %}
+{% if can_manage_records %}
 <div class="card form-panel" id="repair-form">
     <div class="card-header"><div><h3>Gửi yêu cầu sửa chữa</h3><p>Mô tả rõ vấn đề để bộ phận phụ trách xử lý nhanh hơn.</p></div><i class="bi bi-tools"></i></div>
     <form method="post" action="/repairs" data-confirm="Bạn có muốn gửi yêu cầu sửa chữa này không?">
@@ -26,6 +29,7 @@
         <div class="header-actions" style="margin-top: 18px;"><button class="btn btn-primary" type="submit"><i class="bi bi-send"></i> Gửi yêu cầu</button></div>
     </form>
 </div>
+{% endif %}
 <div class="card table-card">
     <div class="card-header"><div><h3>Danh sách yêu cầu</h3><p>Theo dõi tiến độ xử lý các yêu cầu bảo trì.</p></div><span class="record-count">{{ repairs|length }} yêu cầu</span></div>
     <div class="table-wrap">
@@ -33,7 +37,7 @@
             <tbody>
             {% for repair in repairs %}<tr><td>#{{ '%03d'|format(repair.id) }}</td><td><strong>{{ repair.asset.name if repair.asset else repair.asset_id }}</strong></td><td>{{ repair.description }}<br><small>Yêu cầu: {{ repair.requested_by or '—' }} · Cập nhật: {{ repair.updated_by or '—' }}</small></td><td>{{ "{:,.0f}".format(repair.cost or 0) }} VNĐ</td><td>
               <span class="badge status-{{ repair.status }} status-label">{{ repair_statuses[repair.status] }}</span>
-              {% if repair.status in ['pending', 'in_progress'] %}
+              {% if can_manage_records and repair.status in ['pending', 'in_progress'] %}
               <form method="post" action="{{ url_for('repair.update_repair', repair_id=repair.id) }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <select name="status" required>{% for value, label in repair_statuses.items() %}<option value="{{ value }}" {% if repair.status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>

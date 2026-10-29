@@ -2,51 +2,43 @@
 {% block title %}Cài đặt hệ thống{% endblock %}
 {% block breadcrumb %}Cài đặt{% endblock %}
 {% block content %}
-<div class="page-header">
-    <div class="page-heading"><i class="bi bi-sliders"></i><div><h1>Cài đặt hệ thống</h1><p class="page-description">Thiết lập thông tin vận hành và chính sách bảo mật của hệ thống.</p></div></div>
-    <div class="header-actions"><button class="btn btn-primary" type="button" disabled><i class="bi bi-check2"></i> Lưu thay đổi</button></div>
-</div>
-
-<div class="alert-box success"><i class="bi bi-shield-check"></i> Bạn đang truy cập khu vực quản trị với quyền {{ user.display_role }}.</div>
-<div class="grid-2">
-    <div class="card">
-        <div class="card-header"><div><h3>Thông tin cơ bản</h3><p>Thông tin nhận diện đơn vị.</p></div><i class="bi bi-building"></i></div>
-        <div class="form-grid">
-            <div class="form-field">
-                <label>Tên trường</label>
-                <input value="Trường Đại học Mở Hà Nội" type="text">
-            </div>
-            <div class="form-field">
-                <label>Mã trường</label>
-                <input value="THMN" type="text">
-            </div>
-            <div class="form-field full">
-                <label>Địa chỉ</label>
-                <input value="123 Đường Khoa học, Hà Nội" type="text">
-            </div>
+<section class="page-header">
+    <div class="page-heading">
+        <i class="bi bi-sliders"></i>
+        <div>
+            <h1>Cài đặt hệ thống</h1>
+            <p class="page-description">Xem cấu hình đang được ứng dụng sử dụng.</p>
         </div>
     </div>
+</section>
 
-    <div class="card">
-        <div class="card-header"><div><h3>Tùy chọn bảo mật</h3><p>Chính sách đang áp dụng.</p></div><i class="bi bi-shield-lock"></i></div>
-        <div class="form-grid">
-            <div class="form-field full">
-                <label>Chế độ xác thực</label>
-                <select>
-                    <option selected>Session-based authentication</option>
-                    <option>LDAP</option>
-                    <option>SAML</option>
-                </select>
-            </div>
-            <div class="form-field full">
-                <label>Khóa hệ thống</label>
-                <select>
-                    <option selected>Cho phép truy cập</option>
-                    <option>Khóa tạm thời</option>
-                </select>
-            </div>
-        </div>
-    </div>
+<div class="alert-box success">
+    <i class="bi bi-shield-check"></i>
+    Khu vực quản trị · {{ user.display_role }}
 </div>
-<div class="card"><div class="card-header"><div><h3>Trạng thái hệ thống</h3><p>Các dịch vụ nền tảng đang được bảo vệ.</p></div><span class="badge status-active">Đang hoạt động</span></div><div class="list-pager" style="padding: 0;"><span><i class="bi bi-database"></i> Cơ sở dữ liệu kết nối</span><span><i class="bi bi-robot"></i> RAG/LLM giữ nguyên cấu hình</span></div></div>
+
+<section class="card">
+    <div class="card-header">
+        <div>
+            <h2>Dịch vụ AI</h2>
+            <p>Các giá trị được nạp từ tệp môi trường khi khởi động ứng dụng.</p>
+        </div>
+        <span class="badge status-info">Chỉ xem</span>
+    </div>
+    <dl class="detail-list">
+        <div><span>Nhà cung cấp</span><strong>{{ config.LLM_API_BASE_URL }}</strong></div>
+        <div><span>Mô hình</span><strong>{{ config.LLM_MODEL }}</strong></div>
+        <div>
+            <span>API key</span>
+            <strong>{{ 'Đã cấu hình' if config.LLM_API_KEY else 'Chưa cấu hình' }}</strong>
+        </div>
+        <div><span>Thời gian chờ</span><strong>{{ config.LLM_TIMEOUT_SECONDS }} giây</strong></div>
+    </dl>
+    <p class="page-description">
+        Để thay đổi nhà cung cấp hoặc API key, quản trị viên cập nhật tệp
+        <code>.env</code> trên máy chủ rồi khởi động lại ứng dụng. API key không
+        được hiển thị trên trang này.
+    </p>
+</section>
+
 {% endblock %}

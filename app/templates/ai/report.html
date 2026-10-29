@@ -1,102 +1,395 @@
 {% extends 'base.html' %}
 {% block title %}AI Báo cáo{% endblock %}
-{% block breadcrumb %}AI Báo cáo{% endblock %}
+{% block breadcrumb %}Báo cáo & AI{% endblock %}
 {% block content %}
-<div class="page-header">
-  <div class="page-heading"><i class="bi bi-stars"></i><div><h1>AI Báo cáo</h1><p class="page-description">Chọn một góc nhìn để xem thống kê thực tế và nhận phân tích từ AI.</p></div></div>
-</div>
+<section class="ai-report-page">
+  <div class="card ai-report-setup">
+    <div class="ai-report-page-heading">
+      <div>
+        <h1>Kết quả xử lý AI</h1>
+        <p>Chọn loại phân tích, xem dữ liệu đối chiếu và gửi kết quả để Admin xem xét.</p>
+      </div>
+    </div>
+    {% if not can_manage_records %}
+    <p class="ai-report-description">Tài khoản của bạn có quyền xem báo cáo đã lưu, không có quyền tạo báo cáo mới.</p>
+    {% endif %}
+    <div class="ai-report-tabs" role="group" aria-label="Loại báo cáo AI">
+      {% if is_admin %}
+      <button class="ai-report-tab" type="button" data-report-type="inventory" {% if not can_manage_records %}disabled{% endif %}>Báo cáo kiểm kê</button>
+      {% endif %}
+      <button class="ai-report-tab" type="button" data-report-type="department" {% if not can_manage_records %}disabled{% endif %}>Tóm tắt tình trạng theo phòng ban</button>
+      {% if is_admin %}
+      <button class="ai-report-tab" type="button" data-report-type="recommendations" {% if not can_manage_records %}disabled{% endif %}>Gợi ý sửa chữa hoặc thay thế</button>
+      {% endif %}
+      <label class="ai-report-other">
+        <span>Báo cáo khác</span>
+        <select id="other-report-type" aria-label="Loại báo cáo khác" {% if not can_manage_records %}disabled{% endif %}>
+          <option value="overview">Tổng quan</option>
+          <option value="repair">Sửa chữa</option>
+          <option value="disposal">Thanh lý</option>
+        </select>
+      </label>
+    </div>
 
-<div class="card filter-card">
-  <div class="card-header"><div><h3>Thiết lập báo cáo</h3><p>Dữ liệu được lấy trực tiếp từ cơ sở dữ liệu hiện tại.</p></div><i class="bi bi-sliders"></i></div>
-  <div class="form-grid">
-    <div class="form-field">
-      <label for="report-type">Loại báo cáo</label>
-            <select id="report-type">
-                <option value="overview">Tổng quan</option>
-                <option value="department">Theo phòng ban</option>
-                <option value="repair">Sửa chữa</option>
-                <option value="disposal">Thanh lý</option>
-                <option value="inventory">Kiểm kê</option>
-                <option value="recommendations">Gợi ý sửa chữa / thay thế</option>
-            </select>
-        </div>
+    <div class="ai-report-options">
+      <div class="ai-report-description" id="report-description" aria-live="polite"></div>
+      <div class="ai-report-fields">
         <div class="form-field" id="department-field" hidden>
           <label for="report-department">Phòng ban</label>
-          <select id="report-department"><option value="">-- Chọn phòng ban --</option>{% for department in departments %}<option value="{{ department.id }}">{{ department.name }}</option>{% endfor %}</select>
+          <select id="report-department" {% if not can_manage_records %}disabled{% endif %}>
+            <option value="">-- Chọn phòng ban --</option>
+            {% for department in departments %}
+            <option value="{{ department.id }}">{{ department.name }}</option>
+            {% endfor %}
+          </select>
         </div>
         <div class="form-field" id="inventory-field" hidden>
-          <label for="report-inventory">Đợt kiểm kê</label>
-          <select id="report-inventory"><option value="">-- Chọn đợt kiểm kê --</option>{% for item in inventory_rounds %}<option value="{{ item.id }}">{{ item.name }} · #{{ item.id }}</option>{% endfor %}</select>
+          <label for="report-inventory">Đợt kiểm kê đã hoàn thành</label>
+          <select id="report-inventory" {% if not can_manage_records %}disabled{% endif %}>
+            <option value="">-- Chọn đợt kiểm kê đã hoàn thành --</option>
+            {% for item in inventory_rounds %}
+            <option value="{{ item.id }}">{{ item.name }} · #{{ item.id }}</option>
+            {% endfor %}
+          </select>
         </div>
-        <div class="form-field">
-          <label>&nbsp;</label><button class="btn btn-primary" id="generate-report"><i class="bi bi-magic"></i> Tạo báo cáo</button>
-        </div>
+        <button class="btn btn-primary" id="generate-report" type="button" {% if not can_manage_records %}disabled{% endif %}>
+          <i class="bi bi-stars"></i> Tạo báo cáo
+        </button>
+      </div>
     </div>
-</div>
+  </div>
 
-<div class="card" style="margin-bottom: 20px;">
-  <div class="card-header"><div><h3>Chỉ số thực tế</h3><p>Các chỉ số được cập nhật sau khi tạo báo cáo.</p></div><span class="badge status-info" id="report-status">Chưa tạo</span></div>
-  <div class="report-stat-grid" id="report-stat-grid"><div class="report-stat"><span>Trạng thái</span><strong>Chưa có dữ liệu</strong></div></div>
-  <pre id="stats-output" class="report-output" hidden>{}</pre>
-</div>
-<div class="ai-report-grid">
-  <div class="card">
-    <div class="card-header"><div><h3>Dữ liệu thống kê</h3><p>JSON gốc từ API, dùng để đối chiếu.</p></div><i class="bi bi-database"></i></div>
-    <pre id="stats-detail" class="report-output">Chưa có báo cáo. Hãy chọn loại và tạo báo cáo.</pre>
+  <section class="ai-report-results" id="report-results" hidden aria-live="polite">
+    <div class="ai-reference-banner">
+      <i class="bi bi-info-circle-fill"></i>
+      <span>Nội dung sinh bởi AI chỉ mang tính tham khảo, không thay thế quyết định nghiệp vụ.</span>
+      <strong id="reference-label">Kết quả AI – Tham khảo</strong>
     </div>
-    <div class="card">
-    <div class="card-header"><div><h3>Phân tích của AI</h3><p>Nhận định được tạo từ đúng bộ dữ liệu bên trái.</p></div><i class="bi bi-stars"></i></div>
-    <div id="ai-analysis" class="report-analysis">Chưa có phân tích AI.</div>
+
+    <div class="card ai-report-table-card">
+      <div class="ai-report-section-heading">
+        <div>
+          <h2 id="result-table-title">Dữ liệu thống kê và kết quả</h2>
+          <p id="result-table-caption">Dữ liệu thực tế dùng để đối chiếu với phân tích.</p>
+        </div>
+        <span class="badge status-info" id="report-status">Chưa tạo</span>
+      </div>
+      <div class="table-wrap">
+        <table class="ai-result-table">
+          <thead><tr id="result-table-head"></tr></thead>
+          <tbody id="result-table-body"></tbody>
+        </table>
+      </div>
+      <pre id="stats-output" class="report-output" hidden>{}</pre>
     </div>
-</div>
+
+    <div class="ai-report-result-grid">
+      <section class="card ai-report-summary-card">
+        <div class="ai-report-section-heading">
+          <div>
+            <h2>Phân tích của AI</h2>
+            <p id="summary-scope">Phân tích từ dữ liệu thực tế.</p>
+          </div>
+        </div>
+        <p id="ai-summary" class="ai-report-summary">Chưa có báo cáo.</p>
+        <div class="ai-report-notes-grid">
+          <div>
+            <h3>Nhận định</h3>
+            <ul id="ai-observations"></ul>
+          </div>
+          <div>
+            <h3>Đề xuất xử lý</h3>
+            <ul id="ai-recommendations"></ul>
+          </div>
+        </div>
+      </section>
+
+      <aside class="card ai-report-review-card" id="report-review-card" hidden>
+        <h2>Kiểm tra và quyết định</h2>
+        <p>Kết quả AI chỉ để tham khảo. Quyết định không tự thay đổi trạng thái tài sản.</p>
+        <div id="report-review-actions" class="ai-report-review-actions" hidden>
+          <button type="button" class="btn btn-primary" data-decision="approved">
+            <i class="bi bi-check2-circle"></i> Phê duyệt báo cáo
+          </button>
+          <button type="button" class="btn btn-outline ai-report-reject" data-decision="rejected">
+            <i class="bi bi-x-circle"></i> Từ chối
+          </button>
+        </div>
+        <p class="ai-report-review-result" id="report-review-result"></p>
+        <details class="ai-report-source-details">
+          <summary>Xem dữ liệu gốc</summary>
+          <pre id="stats-detail" class="report-output">Chưa có báo cáo.</pre>
+        </details>
+      </aside>
+    </div>
+  </section>
+
+  <section class="card ai-report-history">
+    <div class="ai-report-section-heading">
+      <div>
+        <h2>Báo cáo AI gần đây</h2>
+        <p>Chọn báo cáo đã lưu để xem lại hoặc tiếp tục xử lý.</p>
+      </div>
+    </div>
+    <div class="ai-report-history-list" id="saved-report-list">
+      {% for report in saved_reports %}
+      <button class="ai-report-history-item" type="button" data-report-id="{{ report.id }}">
+        <span class="ai-report-history-title">
+          <strong>{{ {'inventory': 'Báo cáo kiểm kê', 'department': 'Tóm tắt phòng ban', 'recommendations': 'Gợi ý sửa chữa'} .get(report.report_type, report.report_type) }}</strong>
+          <small>{{ report.scope_label }} · {{ report.created_at.strftime('%d/%m/%Y %H:%M') }}</small>
+        </span>
+        <span class="badge {% if report.status == 'approved' %}status-approved{% elif report.status == 'rejected' %}status-rejected{% elif report.status == 'pending' %}status-pending{% else %}status-info{% endif %}" data-history-status="{{ report.id }}">
+          {{ {'pending': 'Chờ Admin xem xét', 'approved': 'Đã phê duyệt', 'rejected': 'Đã từ chối', 'unavailable': 'AI chưa tạo được'} .get(report.status, report.status) }}
+        </span>
+      </button>
+      {% else %}
+      <p class="ai-report-history-empty">Chưa có báo cáo AI nào được lưu.</p>
+      {% endfor %}
+    </div>
+  </section>
+</section>
 
 <script>
-const typeSelect = document.getElementById('report-type');
-const statsOutput = document.getElementById('stats-output');
-const aiAnalysis = document.getElementById('ai-analysis');
-const generateButton = document.getElementById('generate-report');
-const statGrid = document.getElementById('report-stat-grid');
-const statsDetail = document.getElementById('stats-detail');
-const reportStatus = document.getElementById('report-status');
+const reportButtons = [...document.querySelectorAll('[data-report-type]')];
+const otherReportType = document.getElementById('other-report-type');
 const departmentField = document.getElementById('department-field');
 const departmentSelect = document.getElementById('report-department');
 const inventoryField = document.getElementById('inventory-field');
 const inventorySelect = document.getElementById('report-inventory');
+const reportDescription = document.getElementById('report-description');
+const generateButton = document.getElementById('generate-report');
+const resultSection = document.getElementById('report-results');
+const reportStatus = document.getElementById('report-status');
+const referenceLabel = document.getElementById('reference-label');
+const tableTitle = document.getElementById('result-table-title');
+const tableCaption = document.getElementById('result-table-caption');
+const tableHead = document.getElementById('result-table-head');
+const tableBody = document.getElementById('result-table-body');
+const summaryScope = document.getElementById('summary-scope');
+const summaryOutput = document.getElementById('ai-summary');
+const observationsList = document.getElementById('ai-observations');
+const recommendationsList = document.getElementById('ai-recommendations');
+const sourceOutput = document.getElementById('stats-detail');
+const statsOutput = document.getElementById('stats-output');
+const reviewCard = document.getElementById('report-review-card');
+const reviewActions = document.getElementById('report-review-actions');
+const reviewResult = document.getElementById('report-review-result');
+const referenceTypes = new Set(['inventory', 'department', 'recommendations']);
+let activeReportId = null;
+let activeReportCanDecide = false;
 
-function updateReportInputs() {
-  departmentField.style.display = ['department', 'recommendations'].includes(typeSelect.value) ? '' : 'none';
-  inventoryField.style.display = typeSelect.value === 'inventory' ? '' : 'none';
+const reportDescriptions = {
+  inventory: 'Chỉ chọn đợt đã hoàn thành. AI phân loại tài sản đầy đủ, thiếu, hỏng, sai vị trí và cần sửa chữa.',
+  department: 'Tóm tắt số lượng tài sản đang sử dụng, hỏng, đang sửa và chờ thanh lý trong phòng ban.',
+  recommendations: 'Gợi ý tiếp tục sử dụng, sửa chữa, theo dõi hoặc cân nhắc thay thế từ tuổi và lịch sử sửa chữa.',
+  overview: 'Tổng hợp số liệu tài sản toàn hệ thống.',
+  repair: 'Tổng hợp yêu cầu và tình hình sửa chữa.',
+  disposal: 'Tổng hợp hồ sơ thanh lý và kết quả phê duyệt.'
+};
+
+function selectedReportType() {
+  const activeTab = reportButtons.find(button => button.classList.contains('active'));
+  return activeTab ? activeTab.dataset.reportType : otherReportType.value;
 }
-typeSelect.addEventListener('change', updateReportInputs);
-updateReportInputs();
 
-function renderStats(stats) {
-  const entries = [];
-  if (stats.total_assets !== undefined) entries.push(['Tổng tài sản', stats.total_assets]);
-  if (stats.active_assets !== undefined) entries.push(['Đang sử dụng', stats.active_assets]);
-  if (stats.repair_assets !== undefined) entries.push(['Đang sửa chữa', stats.repair_assets]);
-  if (stats.disposal_assets !== undefined) entries.push(['Đang thanh lý', stats.disposal_assets]);
-  if (stats.total_value !== undefined) entries.push(['Tổng giá trị', Number(stats.total_value).toLocaleString('vi-VN') + ' VNĐ']);
-  if (!entries.length) entries.push(['Số nhóm dữ liệu', Object.keys(stats).length]);
-  statGrid.replaceChildren();
-  entries.forEach(([label, value]) => {
-    const card = document.createElement('div');
-    card.className = 'report-stat';
-    const title = document.createElement('span');
-    title.textContent = label;
-    const metric = document.createElement('strong');
-    metric.textContent = value;
-    card.append(title, metric);
-    statGrid.appendChild(card);
+function setReportType(type) {
+  reportButtons.forEach(button => {
+    const active = button.dataset.reportType === type;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+  if (!reportButtons.some(button => button.dataset.reportType === type)) {
+    otherReportType.value = type;
+  }
+  updateReportOptions();
+}
+
+function updateReportOptions() {
+  const type = selectedReportType();
+  departmentField.hidden = !['department', 'recommendations'].includes(type);
+  inventoryField.hidden = type !== 'inventory';
+  reportDescription.textContent = reportDescriptions[type] || '';
+}
+
+reportButtons.forEach(button => button.addEventListener('click', () => setReportType(button.dataset.reportType)));
+otherReportType.addEventListener('change', () => setReportType(otherReportType.value));
+setReportType(reportButtons.some(button => button.dataset.reportType === 'inventory') ? 'inventory' : 'department');
+
+const statusLabels = {
+  active: 'Đang sử dụng',
+  repair: 'Đang sửa chữa',
+  damaged: 'Hỏng',
+  missing: 'Thiếu',
+  disposal: 'Thanh lý',
+  pending: 'Chờ xử lý',
+  in_progress: 'Đang thực hiện',
+  completed: 'Hoàn thành'
+};
+const classificationLabels = {
+  accounted_for: 'Đầy đủ / đã tìm thấy',
+  missing: 'Thiếu',
+  damaged: 'Hỏng',
+  needs_repair: 'Cần sửa chữa',
+  wrong_location: 'Sai vị trí',
+  status_mismatch: 'Sai lệch trạng thái'
+};
+const reportTitles = {
+  inventory: 'Bảng kết quả kiểm kê',
+  department: 'Tình trạng tài sản theo phòng ban',
+  recommendations: 'Danh sách gợi ý sửa chữa / thay thế',
+  overview: 'Tổng quan tài sản',
+  repair: 'Báo cáo sửa chữa',
+  disposal: 'Báo cáo thanh lý'
+};
+
+function appendCell(row, value, isHeader = false) {
+  const cell = document.createElement(isHeader ? 'th' : 'td');
+  cell.textContent = value == null || value === '' ? '—' : String(value);
+  row.appendChild(cell);
+}
+
+function setTable(headers, rows) {
+  tableHead.replaceChildren();
+  tableBody.replaceChildren();
+  headers.forEach(label => appendCell(tableHead, label, true));
+  rows.forEach(values => {
+    const row = document.createElement('tr');
+    values.forEach(value => appendCell(row, value));
+    tableBody.appendChild(row);
+  });
+  if (!rows.length) {
+    const row = document.createElement('tr');
+    const cell = document.createElement('td');
+    cell.colSpan = headers.length;
+    cell.className = 'ai-report-table-empty';
+    cell.textContent = 'Không có bản ghi trong nhóm dữ liệu này.';
+    row.appendChild(cell);
+    tableBody.appendChild(row);
+  }
+}
+
+function renderReportTable(type, stats) {
+  tableTitle.textContent = reportTitles[type] || 'Bảng kết quả AI';
+  if (type === 'inventory') {
+    const rows = (stats.asset_results || []).map(asset => [
+      asset.asset_code,
+      asset.name,
+      asset.actual_location || asset.expected_location || 'Chưa ghi nhận',
+      statusLabels[asset.actual_status] || asset.actual_status,
+      (asset.classification || []).map(item => classificationLabels[item] || item).join(', ') || 'Bình thường'
+    ]);
+    setTable(['Mã tài sản', 'Tên tài sản', 'Vị trí', 'Trạng thái', 'Nhận định dữ liệu'], rows);
+    tableCaption.textContent = `${stats.name || 'Đợt kiểm kê'} · ${stats.checked_count || 0}/${stats.expected_count || 0} tài sản đã kiểm đếm`;
+    return;
+  }
+  if (type === 'department') {
+    const rows = (stats.assets || []).map(asset => [
+      asset.asset_code,
+      asset.name,
+      asset.location || 'Chưa ghi nhận',
+      asset.pending_disposal ? 'Chờ thanh lý' : (statusLabels[asset.status] || asset.status),
+      asset.pending_disposal ? 'Đang chờ phê duyệt' : '—'
+    ]);
+    setTable(['Mã tài sản', 'Tên tài sản', 'Vị trí', 'Trạng thái', 'Ghi chú'], rows);
+    tableCaption.textContent = `Phòng ban: ${stats.department || '—'} · ${stats.asset_count || 0} tài sản`;
+    return;
+  }
+  if (type === 'recommendations') {
+    const rows = (stats.assets || []).map(asset => [
+      asset.asset_code,
+      asset.name,
+      asset.age_years == null ? 'Chưa có ngày mua' : `${asset.age_years} năm`,
+      asset.useful_life_years == null ? 'Chưa khai báo' : `${asset.useful_life_years} năm`,
+      asset.repair_count,
+      statusLabels[asset.status] || asset.status
+    ]);
+    setTable(['Mã tài sản', 'Tên tài sản', 'Tuổi tài sản', 'Thời gian dự kiến', 'Số lần sửa', 'Hiện trạng'], rows);
+    tableCaption.textContent = `Phòng ban: ${stats.department || '—'} · Gợi ý chỉ mang tính tham khảo`;
+    return;
+  }
+  const rows = Object.entries(stats).filter(([, value]) => typeof value !== 'object')
+    .map(([key, value]) => [key.replaceAll('_', ' '), value]);
+  setTable(['Chỉ số', 'Giá trị'], rows);
+  tableCaption.textContent = 'Các chỉ số thực tế lấy từ hệ thống.';
+}
+
+function appendTextList(list, values, emptyText) {
+  list.replaceChildren();
+  const items = Array.isArray(values) ? values : [];
+  (items.length ? items : [emptyText]).forEach(value => {
+    const item = document.createElement('li');
+    item.textContent = value;
+    list.appendChild(item);
   });
 }
 
-generateButton.addEventListener('click', async function () {
-  const reportType = typeSelect.value;
+function reviewStatusLabel(status) {
+  return {
+    pending: 'Chờ Admin xem xét',
+    approved: 'Đã phê duyệt',
+    rejected: 'Đã từ chối',
+    unavailable: 'AI chưa tạo được'
+  }[status] || status || 'Chưa lưu';
+}
+
+function updateReviewState(data) {
+  activeReportId = data.report_id || null;
+  activeReportCanDecide = Boolean(data.can_decide);
+  const isReviewable = referenceTypes.has(data.report_type) && activeReportId;
+  reviewCard.hidden = !isReviewable;
+  reviewActions.hidden = !(isReviewable && activeReportCanDecide);
+  reviewResult.textContent = isReviewable
+    ? `${reviewStatusLabel(data.review_status)}${data.decided_by ? ` · ${data.decided_by}` : ''}`
+    : '';
+  reportStatus.textContent = reviewStatusLabel(data.review_status);
+  const historyBadge = activeReportId
+    ? document.querySelector(`[data-history-status="${activeReportId}"]`)
+    : null;
+  if (historyBadge) {
+    historyBadge.textContent = reviewStatusLabel(data.review_status);
+    historyBadge.className = `badge ${data.review_status === 'approved' ? 'status-approved' : data.review_status === 'rejected' ? 'status-rejected' : data.review_status === 'pending' ? 'status-pending' : 'status-info'}`;
+  }
+}
+
+function renderReport(data) {
+  resultSection.hidden = false;
+  referenceLabel.textContent = data.reference_label || 'Tham khảo';
+  summaryScope.textContent = data.scope_label || data.stats.department || data.stats.name || 'Phân tích từ dữ liệu thực tế.';
+  renderReportTable(data.report_type, data.stats);
+  statsOutput.textContent = JSON.stringify(data.stats, null, 2);
+  sourceOutput.textContent = JSON.stringify(data.stats, null, 2);
+  let analysis;
+  try {
+    analysis = JSON.parse(data.analysis);
+  } catch {
+    analysis = { summary: data.analysis, observations: [], recommendations: [] };
+  }
+  summaryOutput.textContent = analysis.summary || 'AI chưa tạo được phần tóm tắt.';
+  appendTextList(observationsList, analysis.observations, 'Không có nhận định bổ sung.');
+  appendTextList(recommendationsList, analysis.recommendations, 'Không có đề xuất.');
+  updateReviewState(data);
+  resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function loadReport(reportId) {
+  const response = await fetch(`/ai/report-records/${reportId}`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Không thể tải báo cáo đã lưu.');
+  renderReport(data);
+}
+
+generateButton.addEventListener('click', async () => {
+  const reportType = selectedReportType();
+  if (reportType === 'inventory' && !inventorySelect.value) {
+    reportDescription.textContent = 'Vui lòng chọn một đợt kiểm kê đã hoàn thành.';
+    return;
+  }
+  if (['department', 'recommendations'].includes(reportType) && !departmentSelect.value) {
+    reportDescription.textContent = 'Vui lòng chọn phòng ban.';
+    return;
+  }
   generateButton.disabled = true;
   generateButton.classList.add('is-loading');
-  reportStatus.textContent = 'Đang tạo';
-  aiAnalysis.textContent = 'Đang phân tích dữ liệu thực tế...';
   const payload = { report_type: reportType };
   if (['department', 'recommendations'].includes(reportType)) payload.department_id = departmentSelect.value;
   if (reportType === 'inventory') payload.inventory_id = inventorySelect.value;
@@ -111,20 +404,78 @@ generateButton.addEventListener('click', async function () {
     });
     const data = await response.json();
     if (!response.ok) {
-      aiAnalysis.textContent = data.message || 'Không thể tạo báo cáo.';
+      reportDescription.textContent = data.message || 'Không thể tạo báo cáo.';
       return;
     }
-    renderStats(data.stats);
-    statsDetail.textContent = JSON.stringify(data.stats, null, 2);
-    statsOutput.textContent = JSON.stringify(data.stats, null, 2);
-    aiAnalysis.textContent = data.analysis || 'Không có phân tích từ AI.';
-    reportStatus.textContent = 'Đã cập nhật';
+    renderReport(data);
+    if (data.report_id) {
+      const historyItem = document.createElement('button');
+      historyItem.type = 'button';
+      historyItem.className = 'ai-report-history-item';
+      historyItem.dataset.reportId = data.report_id;
+      const title = document.createElement('span');
+      title.className = 'ai-report-history-title';
+      const strong = document.createElement('strong');
+      strong.textContent = reportTitles[data.report_type] || 'Báo cáo AI';
+      const small = document.createElement('small');
+      small.textContent = summaryScope.textContent;
+      title.append(strong, small);
+      const badge = document.createElement('span');
+      badge.className = 'badge status-pending';
+      badge.dataset.historyStatus = data.report_id;
+      badge.textContent = reviewStatusLabel(data.review_status);
+      historyItem.append(title, badge);
+      historyItem.addEventListener('click', () => loadReport(data.report_id).catch(error => {
+        reportDescription.textContent = error.message;
+      }));
+      document.getElementById('saved-report-list').prepend(historyItem);
+    }
   } catch (error) {
-    aiAnalysis.textContent = 'Hệ thống AI đang gặp sự cố hoặc timeout. Dữ liệu thống kê thực tế vẫn được hiển thị ở bên trái.';
+    reportDescription.textContent = error.message || 'Không thể kết nối dịch vụ AI.';
   } finally {
     generateButton.disabled = false;
     generateButton.classList.remove('is-loading');
   }
+});
+
+document.getElementById('saved-report-list').addEventListener('click', event => {
+  const button = event.target.closest('[data-report-id]');
+  if (!button) return;
+  loadReport(button.dataset.reportId).catch(error => {
+    reportDescription.textContent = error.message;
+  });
+});
+
+reviewActions.querySelectorAll('[data-decision]').forEach(button => {
+  button.addEventListener('click', async () => {
+    if (!activeReportId || !activeReportCanDecide) return;
+    button.disabled = true;
+    try {
+      const response = await fetch(`/ai/report-records/${activeReportId}/decision`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ decision: button.dataset.decision })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Không thể lưu quyết định.');
+      activeReportCanDecide = false;
+      reviewActions.hidden = true;
+      reviewResult.textContent = `${reviewStatusLabel(data.review_status)} · ${data.decided_by}`;
+      reportStatus.textContent = reviewStatusLabel(data.review_status);
+      const historyBadge = document.querySelector(`[data-history-status="${activeReportId}"]`);
+      if (historyBadge) {
+        historyBadge.textContent = reviewStatusLabel(data.review_status);
+        historyBadge.className = `badge ${data.review_status === 'approved' ? 'status-approved' : 'status-rejected'}`;
+      }
+    } catch (error) {
+      reviewResult.textContent = error.message;
+    } finally {
+      button.disabled = false;
+    }
+  });
 });
 </script>
 {% endblock %}
