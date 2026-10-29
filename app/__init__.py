@@ -24,7 +24,7 @@ def enable_sqlite_foreign_keys(connection, _record):
 
 def _ensure_seed_data(app):
     """Create the schema and optionally provision users or demo data."""
-    from app.models import Category, User, db
+    from app.models import User, db
 
     database_uri = app.config["SQLALCHEMY_DATABASE_URI"]
     if database_uri.startswith("sqlite:///"):
@@ -33,6 +33,8 @@ def _ensure_seed_data(app):
         db_file.parent.mkdir(parents=True, exist_ok=True)
 
     with app.app_context():
+        existing_tables = set(db.inspect(db.engine).get_table_names())
+        has_existing_app_schema = bool(existing_tables.intersection(db.metadata.tables))
         db.create_all()
 
         inspector = db.inspect(db.engine)
@@ -120,15 +122,10 @@ def _ensure_seed_data(app):
                 )
                 db.session.commit()
 
-        if app.config.get("SEED_DEMO_DATA") and Category.query.first() is None:
-            seed_file = Path(app.root_path).resolve().parent / "database" / "seed.sql"
-            if seed_file.exists():
-                sql = seed_file.read_text(encoding="utf-8")
-                for statement in [part.strip() for part in sql.split(";") if part.strip()]:
-                    if "INSERT INTO users" in statement:
-                        continue
-                    db.session.execute(text(statement))
-                db.session.commit()
+        if app.config.get("SEED_DEMO_DATA") and not has_existing_app_schema:
+            from database.demo_seed import seed_demo_data
+
+            seed_demo_data()
 
 
 def create_app(test_config=None):

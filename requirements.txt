@@ -10,3 +10,4 @@ chromadb==0.5.3
 requests==2.32.3
 pytest==8.3.2
 Werkzeug==3.0.3
+waitress==3.0.2
