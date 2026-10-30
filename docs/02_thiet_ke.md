@@ -1,6 +1,6 @@
 # Thiết kế hệ thống
 
-Thiết kế phải bám sát Flask/SQLAlchemy hiện tại; không phải thiết kế Django. Chi tiết kiến trúc và ERD nằm tại [ARCHITECTURE.md](./ARCHITECTURE.md), Use Case tại [USE_CASE.md](./USE_CASE.md).
+Thiết kế phải bám sát Flask/SQLAlchemy hiện tại; không phải thiết kế Django. Chi tiết kiến trúc và ERD nằm tại [Kien_truc_he_thong.md](./Kien_truc_he_thong.md), Use Case tại [Truong_hop_su_dung.md](./Truong_hop_su_dung.md).
 
 ## Các thực thể đang triển khai
 
@@ -21,4 +21,6 @@ Browser → Flask routes → SQLAlchemy/DB. RAG đọc tài liệu trong `data/d
 
 ## Giới hạn
 
-Chưa hoàn tất inventory details, quy trình trạng thái repair/disposal, RBAC/CSRF đầy đủ, phân quyền tóm tắt theo department, report theo inventory campaign, migration versioned và test live provider. Xem [GAP_ANALYSIS.md](./GAP_ANALYSIS.md).
+Chưa hoàn tất inventory details, quy trình trạng thái repair/disposal, RBAC/CSRF đầy đủ, phân quyền tóm tắt theo department, report theo inventory campaign, migration versioned và test live provider. Xem [Phan_tich_khoang_trong.md](./Phan_tich_khoang_trong.md).
+
+

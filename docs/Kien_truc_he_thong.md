@@ -124,3 +124,5 @@ erDiagram
 - Schema ORM do SQLAlchemy `create_all` tạo; startup còn chạy bổ sung cột SQLite additive/idempotent cho các workflow mới. `database/schema.sql` là tài liệu SQL độc lập, không phải migration đang được chạy. Chưa có migration versioned.
 - CSRF/RBAC được áp dụng ở backend; report AI cho phép chọn phòng ban/đợt kiểm kê. Chưa có ACL theo phòng ban cho từng user.
 - `database/backup.py` hỗ trợ backup/restore SQLite sang file mới và kiểm tra integrity; chưa có lịch backup hoặc production restore drill. `/health` chạy query DB, không thay thế readiness/monitoring production.
+
+

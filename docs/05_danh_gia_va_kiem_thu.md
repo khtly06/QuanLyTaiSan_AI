@@ -20,4 +20,6 @@ Chạy bằng Python 3.12 trên workspace; test dùng SQLite tạm, không truy 
 | AI report | Có department/campaign scope, giới hạn payload và schema validation; test bằng dữ liệu cục bộ/mock. Provider live và 3 vòng prompt chưa chạy. |
 | Database và vận hành | Có SQLite additive upgrade, FK enforcement, backup/restore file mới và `/health`; chưa có migrations versioned, automation hoặc production drill. |
 
-Đây là review theo source và test, không phải chứng nhận bảo mật. Xem [TRACEABILITY_MATRIX.md](./TRACEABILITY_MATRIX.md) cho trạng thái từng tiêu chí và [GAP_ANALYSIS.md](./GAP_ANALYSIS.md) cho việc còn mở.
+Đây là review theo source và test, không phải chứng nhận bảo mật. Xem [Ma_tran_theo_doi_yeu_cau.md](./Ma_tran_theo_doi_yeu_cau.md) cho trạng thái từng tiêu chí và [Phan_tich_khoang_trong.md](./Phan_tich_khoang_trong.md) cho việc còn mở.
+
+

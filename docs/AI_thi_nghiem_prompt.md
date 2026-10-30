@@ -32,3 +32,5 @@ Dùng fixture test tổng hợp cố định, không dùng dữ liệu thật:
 | 3 — biên | Dùng cùng fixture về tài sản nhưng kiểm tra phản hồi thiếu dữ liệu cho trường lịch sử/kiểm kê không được cung cấp | Fixture cố định ở trên | Chưa chạy | Không được tự bịa lịch sử, tài sản thiếu hoặc chênh lệch | CHƯA XÁC MINH |
 
 Test hiện chạy bằng mock HTTP xác minh request timeout, giới hạn prompt, xử lý response sai và API key thiếu; đó là test tích hợp mã, không phải thử nghiệm model/prompt live.
+
+

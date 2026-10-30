@@ -27,4 +27,6 @@ Kế hoạch này mô tả các bước còn lại cho repository Flask hiện t
 - Xác minh responsive, cải thiện thông báo/empty states, theo dõi hiệu năng.
 - Thêm health/readiness và hướng dẫn triển khai có kiểm chứng.
 
-Trạng thái hiện tại và ưu tiên cụ thể: [GAP_ANALYSIS.md](./GAP_ANALYSIS.md).
+Trạng thái hiện tại và ưu tiên cụ thể: [Phan_tich_khoang_trong.md](./Phan_tich_khoang_trong.md).
+
+

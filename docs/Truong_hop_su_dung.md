@@ -89,3 +89,5 @@ Luồng đích cần lưu người thực hiện, thời gian, chi tiết, trạ
 4. UI hiển thị nguồn dữ liệu, trạng thái chờ/lỗi và cảnh báo AI chỉ hỗ trợ tham khảo.
 
 **Hiện trạng:** có trang báo cáo thống kê và lời gọi API LLM tổng quát; chưa có báo cáo sai lệch cho một đợt kiểm kê cụ thể, tóm tắt phòng ban có chọn phạm vi, hoặc gợi ý thay thế có căn cứ lịch sử.
+
+

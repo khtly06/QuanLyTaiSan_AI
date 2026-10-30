@@ -5,3 +5,4 @@ Tài sản cố định của trường học phải được ghi nhận đầy 
 Kiểm kê tài sản định kỳ mỗi quý là yêu cầu bắt buộc. Khoa, phòng ban và ban giám hiệu cùng đối chiếu hồ sơ, kiểm tra thực tế và lập báo cáo theo quy định.
 
 Nếu phát hiện tài sản hỏng hoặc thiếu, đơn vị quản lý phải lập biên bản ngay trong vòng 5 ngày làm việc và đề xuất phương án xử lý thích hợp.
+

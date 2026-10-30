@@ -7,3 +7,4 @@
 5. Lập báo cáo tổng hợp và đề xuất xử lý.
 
 Mỗi tài sản được giao phải có đầy đủ hồ sơ, mã tài sản và giấy tờ liên quan. Trong trường hợp phát hiện thiếu, đơn vị quản lý phải báo ngay cho ban giám hiệu.
+

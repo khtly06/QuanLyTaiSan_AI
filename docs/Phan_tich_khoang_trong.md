@@ -1,6 +1,6 @@
 # Phân tích khoảng trống và ưu tiên
 
-Ngày cập nhật: 2026-10-26. Ma trận theo 36 nhiệm vụ: [TRACEABILITY_MATRIX.md](./TRACEABILITY_MATRIX.md). Chỉ đánh dấu hoàn tất khi source và test có bằng chứng; test mock không xác nhận dịch vụ ngoài hoạt động.
+Ngày cập nhật: 2026-10-26. Ma trận theo 36 nhiệm vụ: [Ma_tran_theo_doi_yeu_cau.md](./Ma_tran_theo_doi_yeu_cau.md). Chỉ đánh dấu hoàn tất khi source và test có bằng chứng; test mock không xác nhận dịch vụ ngoài hoạt động.
 
 ## Tóm tắt
 
@@ -40,3 +40,5 @@ Các luồng cốt lõi đã được bổ sung gồm kiểm kê có snapshot/đ
 ## Demo trung thực
 
 Có thể demo kiểm kê với xác nhận người dùng, workflow repair/disposal, các quyền backend, CRUD danh mục/phòng ban, điều chuyển, health check và báo cáo DB/AI. Khi thiếu API key, report vẫn cung cấp metrics thực tế và thông báo không có phân tích model. Không tuyên bố provider live, migration versioned, audit log đầy đủ, deployment production hoặc restore production đã được kiểm chứng.
+
+

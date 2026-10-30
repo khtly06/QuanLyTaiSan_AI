@@ -19,4 +19,6 @@ Repository triển khai Flask + Flask-SQLAlchemy + SQLAlchemy models, Jinja temp
 
 ## Known limitations
 
-Chưa có migration versioned, audit log tổng quát, rate limiting, ACL theo department cho từng user hoặc Location entity. Provider AI live và ba vòng prompt experiment chưa chạy. Xem [GAP_ANALYSIS.md](./GAP_ANALYSIS.md) và [TRACEABILITY_MATRIX.md](./TRACEABILITY_MATRIX.md).
+Chưa có migration versioned, audit log tổng quát, rate limiting, ACL theo department cho từng user hoặc Location entity. Provider AI live và ba vòng prompt experiment chưa chạy. Xem [Phan_tich_khoang_trong.md](./Phan_tich_khoang_trong.md) và [Ma_tran_theo_doi_yeu_cau.md](./Ma_tran_theo_doi_yeu_cau.md).
+
+

@@ -11,3 +11,4 @@ Nếu phát hiện tài sản hỏng, bộ phận quản lý phải lập biên 
 
 ## 4. Thanh lý
 Tài sản hết hạn sử dụng hoặc không còn phù hợp phải được thanh lý theo quy trình phê duyệt của nhà trường.
+

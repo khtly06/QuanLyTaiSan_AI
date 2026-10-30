@@ -7,8 +7,10 @@
 - **Đã triển khai:** inventory snapshot và kết quả kiểm đếm rõ ràng; repair/disposal state transitions; category/department CRUD; vai trò/CSRF và user management; report theo department/campaign; prompt RAG tách biệt; SQLite additive upgrade, backup/restore file mới, health endpoint; validation đầu vào và cập nhật tài liệu.
 - **Xác minh:** `python -m pytest -q` — **63 passed** trên SQLite tạm. Có test mock HTTP cho LLM, không có API provider live. Test backup/restore chạy trên dữ liệu tạm; không có production restore drill.
 - **Chưa xác minh:** ba vòng prompt experiment live, browser E2E, lint/type-check/coverage, load test, production deploy, login rate limit, migration versioned và security certification độc lập.
-- **Kết luận:** workflow và test được bổ sung đáng kể nhưng dự án chưa đủ cơ sở để tuyên bố hoàn tất production. Xem [TRACEABILITY_MATRIX.md](./TRACEABILITY_MATRIX.md) và [GAP_ANALYSIS.md](./GAP_ANALYSIS.md).
+- **Kết luận:** workflow và test được bổ sung đáng kể nhưng dự án chưa đủ cơ sở để tuyên bố hoàn tất production. Xem [Ma_tran_theo_doi_yeu_cau.md](./Ma_tran_theo_doi_yeu_cau.md) và [Phan_tich_khoang_trong.md](./Phan_tich_khoang_trong.md).
 
 ## Ranh giới bằng chứng
 
 Không ghi output AI giả hoặc suy diễn chất lượng model từ mock. Không đưa dữ liệu sản xuất tới provider. Các test chứng minh nhánh ứng dụng đã chạy trong fixture, không thay thế xác minh provider, deployment, bảo mật độc lập hoặc khôi phục production.
+
+

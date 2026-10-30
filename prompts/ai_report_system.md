@@ -9,3 +9,4 @@ Chỉ trả về một JSON object hợp lệ, không có Markdown fence, với 
 - "summary": chuỗi tóm tắt.
 - "observations": mảng các nhận xét có căn cứ.
 - "recommendations": mảng đề xuất thận trọng, nêu dữ liệu làm căn cứ.
+

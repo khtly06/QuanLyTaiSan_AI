@@ -1,6 +1,6 @@
 # Yêu cầu hệ thống
 
-Đây là danh mục yêu cầu tổng quan. Đặc tả quy trình, actor, đầu vào/đầu ra và giới hạn hiện tại được ghi tại [ANALYSIS.md](./ANALYSIS.md); trạng thái có bằng chứng tại [TRACEABILITY_MATRIX.md](./TRACEABILITY_MATRIX.md).
+Đây là danh mục yêu cầu tổng quan. Đặc tả quy trình, actor, đầu vào/đầu ra và giới hạn hiện tại được ghi tại [Phan_tich.md](./Phan_tich.md); trạng thái có bằng chứng tại [Ma_tran_theo_doi_yeu_cau.md](./Ma_tran_theo_doi_yeu_cau.md).
 
 ## Actor
 
@@ -28,3 +28,5 @@
 - Phản hồi lỗi thân thiện, không tiết lộ thông tin bí mật; giao diện tiếng Việt và responsive.
 - AI có timeout/giới hạn, tối thiểu hóa dữ liệu gửi đi, phân biệt dữ kiện/suy luận/đề xuất và không tự ghi thay đổi.
 - Chất lượng được xác nhận bằng test tự động, browser test và kiểm thử vận hành phù hợp.
+
+

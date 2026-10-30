@@ -8,3 +8,4 @@ Tài sản hỏng, xuống cấp hoặc hết thời gian sử dụng phải đ�
 - Phê duyệt và thực hiện thanh lý
 
 Người quản lý tài sản chịu trách nhiệm kiểm tra giá trị, ghi nhận vào sổ quản lý và báo cáo cho nhà trường.
+

@@ -1,6 +1,6 @@
 # Quản lý tài sản trường học
 
-Ứng dụng web Flask/SQLAlchemy để quản lý tài sản trường học. Có luồng ghi nhận kiểm kê, sửa chữa, thanh lý có phê duyệt, điều chuyển, RBAC/CSRF và báo cáo AI theo số liệu được chọn. Đây chưa phải sản phẩm production được chứng nhận: migration vẫn chưa versioned, chưa có audit log tổng quát, login rate limit, E2E hoặc thử nghiệm provider AI live. Xem [bảng đối chiếu](docs/TRACEABILITY_MATRIX.md) và [báo cáo gap](docs/GAP_ANALYSIS.md).
+Ứng dụng web Flask/SQLAlchemy để quản lý tài sản trường học. Có luồng ghi nhận kiểm kê, sửa chữa, thanh lý có phê duyệt, điều chuyển, RBAC/CSRF và báo cáo AI theo số liệu được chọn. Đây chưa phải sản phẩm production được chứng nhận: migration vẫn chưa versioned, chưa có audit log tổng quát, login rate limit, E2E hoặc thử nghiệm provider AI live. Xem [bảng đối chiếu](docs/Ma_tran_theo_doi_yeu_cau.md) và [báo cáo gap](docs/Phan_tich_khoang_trong.md).
 
 ## Công nghệ và cấu trúc
 
@@ -137,11 +137,13 @@ Test tạo database riêng trong thư mục tạm và không sử dụng databas
 
 ## Tài liệu
 
-- [Phân tích nghiệp vụ](docs/ANALYSIS.md)
-- [Use Case](docs/USE_CASE.md)
-- [Kiến trúc và ERD](docs/ARCHITECTURE.md)
-- [Phân tích khoảng trống và ưu tiên](docs/GAP_ANALYSIS.md)
-- [Ma trận truy vết 36 nhiệm vụ](docs/TRACEABILITY_MATRIX.md)
-- [Nhật ký SDLC AI](docs/AI_SDLC_LOG.md)
-- [Thử nghiệm prompt](docs/AI_PROMPT_EXPERIMENTS.md)
-- [Báo cáo bàn giao và kịch bản demo](docs/FINAL_DELIVERY.md)
+- [Phân tích nghiệp vụ](docs/Phan_tich.md)
+- [Use Case](docs/Truong_hop_su_dung.md)
+- [Kiến trúc và ERD](docs/Kien_truc_he_thong.md)
+- [Phân tích khoảng trống và ưu tiên](docs/Phan_tich_khoang_trong.md)
+- [Ma trận truy vết 36 nhiệm vụ](docs/Ma_tran_theo_doi_yeu_cau.md)
+- [Nhật ký SDLC AI](docs/AI_nhat_ky_sdlc.md)
+- [Thử nghiệm prompt](docs/AI_thi_nghiem_prompt.md)
+- [Báo cáo bàn giao và kịch bản demo](docs/Bao_cao_giao_hang_cuoi.md)
+
+

@@ -7,3 +7,4 @@ Bạn là Technical Lead của repository Flask hiện tại.
 3. Không tuyên bố triển khai, AI live, backup/restore, browser E2E hoặc security review đã đạt nếu chưa có bằng chứng.
 4. Không tạo ảnh chụp, số liệu, test output hoặc API response giả.
 5. Cập nhật final delivery report và kịch bản demo sao cho phần chưa hoạt động được nêu rõ.
+

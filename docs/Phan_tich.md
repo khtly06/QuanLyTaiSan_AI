@@ -43,4 +43,6 @@ Trường học cần theo dõi thiết bị, đồ dùng, giá trị, phòng ba
 
 ## Giới hạn đã biết
 
-Tài liệu này phân biệt quy trình đã được triển khai với yêu cầu đích. Chưa xác minh provider AI live, 3 vòng thử nghiệm prompt, browser E2E, production deployment/restore drill, phân quyền theo phòng ban, audit log tổng quát, login rate limiting hoặc CRUD vị trí dạng entity. Trạng thái bằng chứng chi tiết nằm tại [TRACEABILITY_MATRIX.md](./TRACEABILITY_MATRIX.md) và [GAP_ANALYSIS.md](./GAP_ANALYSIS.md).
+Tài liệu này phân biệt quy trình đã được triển khai với yêu cầu đích. Chưa xác minh provider AI live, 3 vòng thử nghiệm prompt, browser E2E, production deployment/restore drill, phân quyền theo phòng ban, audit log tổng quát, login rate limiting hoặc CRUD vị trí dạng entity. Trạng thái bằng chứng chi tiết nằm tại [Ma_tran_theo_doi_yeu_cau.md](./Ma_tran_theo_doi_yeu_cau.md) và [Phan_tich_khoang_trong.md](./Phan_tich_khoang_trong.md).
+
+

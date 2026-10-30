@@ -2,7 +2,7 @@
 
 ## Kết quả
 
-Đã hoàn thiện một số luồng nghiệp vụ và kiểm soát nền tảng, nhưng chưa thể kết luận toàn bộ yêu cầu 36 nhiệm vụ hoặc triển khai production đã hoàn tất. Chi tiết theo tiêu chí: [TRACEABILITY_MATRIX.md](./TRACEABILITY_MATRIX.md). Các giới hạn và ưu tiên còn lại: [GAP_ANALYSIS.md](./GAP_ANALYSIS.md).
+Đã hoàn thiện một số luồng nghiệp vụ và kiểm soát nền tảng, nhưng chưa thể kết luận toàn bộ yêu cầu 36 nhiệm vụ hoặc triển khai production đã hoàn tất. Chi tiết theo tiêu chí: [Ma_tran_theo_doi_yeu_cau.md](./Ma_tran_theo_doi_yeu_cau.md). Các giới hạn và ưu tiên còn lại: [Phan_tich_khoang_trong.md](./Phan_tich_khoang_trong.md).
 
 ## Thay đổi chính
 
@@ -46,3 +46,5 @@ Kết quả: **63 passed**. Test suite sử dụng SQLite tạm; database mặc 
 2. Bổ sung rate limiting, audit log và ACL theo department nếu yêu cầu tổ chức cần.
 3. Với API key và phê duyệt phù hợp, chạy ba vòng prompt trên fixture tổng hợp cố định; không dùng dữ liệu nhạy cảm.
 4. Chạy browser E2E, security review độc lập, deployment rehearsal và restore drill trên bản sao.
+
+
